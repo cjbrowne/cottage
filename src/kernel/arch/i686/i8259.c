@@ -1,5 +1,18 @@
-#include "pic.h"
+#include "i8259.h"
 #include "io.h"
+#include <stdint.h>
+#include <stdbool.h>
+
+void i8259_Configure(uint8_t offset_pic1, uint8_t offset_pic2, bool autoEOI);
+void i8259_SendEndOfInterrupt(int irq);
+void i8259_Disable();
+void i8259_SetMask(uint16_t newMask);
+uint16_t i8259_GetMask();
+void i8259_Mask(int irq);
+void i8259_Unmask(int irq);
+uint16_t i8259_ReadIRQRequestRegister();
+uint16_t i8259_ReadInServiceRegister();
+
 
 #define PIC1_COMMAND_PORT           0x20
 #define PIC1_DATA_PORT              0x21
@@ -48,8 +61,14 @@ enum {
     PIC_CMD_READ_ISR            = 0x0B,
 } PIC_CMD;
 
-void i686_PIC_Configure(uint8_t offset_pic1, uint8_t offset_pic2)
+static uint16_t g_PicMaskCache = 0xFFFF;
+static bool g_AutoEOI = false;
+
+void i8259_Configure(uint8_t offset_pic1, uint8_t offset_pic2, bool autoEOI)
 {
+    // mask everything
+    i8259_Disable();
+
     // initialization control word 1
     i686_outb(PIC1_COMMAND_PORT, PIC_ICW1_ICW4 | PIC_ICW1_INITIALIZE);
     i686_iowait();
@@ -69,76 +88,90 @@ void i686_PIC_Configure(uint8_t offset_pic1, uint8_t offset_pic2)
     i686_iowait();
 
     // initialization control word 4
-    i686_outb(PIC1_DATA_PORT, PIC_ICW4_8086);
+    uint8_t icw4 = PIC_ICW4_8086;
+
+    if (g_AutoEOI)
+    {
+        icw4 |= PIC_ICW4_AUTO_EOI;
+    }
+
+    i686_outb(PIC1_DATA_PORT, icw4);
     i686_iowait();
-    i686_outb(PIC2_DATA_PORT, PIC_ICW4_8086);
+    i686_outb(PIC2_DATA_PORT, icw4);
     i686_iowait();
 
-    // clear mask bits (set interrupt mask to 0 so we don't mask any interrupts from the PICs)
-    i686_outb(PIC1_DATA_PORT, 0);
-    i686_iowait();
-    i686_outb(PIC2_DATA_PORT, 0);
-    i686_iowait();
+    // mask all interrupts until they are enabled by the device driver
+    i8259_SetMask(0xFFFF);
 }
 
-void i686_PIC_Mask(int irq)
+void i8259_Mask(int irq)
 {
-    uint8_t port;
-    if (irq < 8)
-    {
-        port = PIC1_DATA_PORT;
-    }
-    else
-    {
-        port = PIC2_DATA_PORT;
-        irq -= 8;
-    }
-    uint8_t mask = i686_inb(port);
-    i686_outb(port, mask | (1 << irq));
+    i8259_SetMask(g_PicMaskCache |= (1 << irq));
 }
 
-void i686_PIC_Unmask(int irq)
+void i8259_Unmask(int irq)
 {
-    uint8_t port;
-    if (irq < 8)
-    {
-        port = PIC1_DATA_PORT;
-    }
-    else
-    {
-        port = PIC2_DATA_PORT;
-        irq -= 8;
-    }
-    uint8_t mask = i686_inb(port);
-    i686_outb(port, mask & ~(1 << irq));
+    i8259_SetMask(g_PicMaskCache &= ~(1 << irq));
 }
 
-void i686_PIC_Disable()
+void i8259_Disable()
 {
-    i686_outb(PIC1_DATA_PORT, 0xFF);
+    i8259_SetMask(0xFFFF);
+}
+
+void i8259_SetMask(uint16_t newMask)
+{
+    g_PicMaskCache = newMask;
+    i686_outb(PIC1_DATA_PORT, g_PicMaskCache & 0xFF);
     i686_iowait();
-    i686_outb(PIC2_DATA_PORT, 0xFF);
+    i686_outb(PIC2_DATA_PORT, g_PicMaskCache >> 8);
     i686_iowait();
 }
 
-void i686_PIC_SendEndOFInterrupt(int irq)
+uint16_t i8259_GetMask()
+{
+    return i686_inb(PIC1_DATA_PORT) | i686_inb(PIC2_DATA_PORT) << 8;
+}
+
+void i8259_SendEndOfInterrupt(int irq)
 {
     if (irq >= 8)
         i686_outb(PIC2_COMMAND_PORT, PIC_CMD_END_OF_INTERRUPT);
     i686_outb(PIC1_COMMAND_PORT, PIC_CMD_END_OF_INTERRUPT);
 }
 
-uint16_t i686_PIC_ReadIRQRequestRegister()
+uint16_t i8259_ReadIRQRequestRegister()
 {
     i686_outb(PIC1_COMMAND_PORT, PIC_CMD_READ_IRR);
     i686_outb(PIC2_COMMAND_PORT, PIC_CMD_READ_IRR);
     return i686_inb(PIC2_COMMAND_PORT) | (i686_inb(PIC1_COMMAND_PORT) << 8);
 }
 
-uint16_t i686_PIC_ReadInServiceRegister()
+uint16_t i8259_ReadInServiceRegister()
 {
     i686_outb(PIC1_COMMAND_PORT, PIC_CMD_READ_ISR);
     i686_outb(PIC2_COMMAND_PORT, PIC_CMD_READ_ISR);
     return i686_inb(PIC2_COMMAND_PORT) | (i686_inb(PIC1_COMMAND_PORT) << 8);
 }
 
+bool i8259_Probe()
+{
+    i8259_Disable();
+    i8259_SetMask(0x1337);
+    return (i8259_GetMask() == 0x1337);
+}
+
+static const PICDriver g_PicDriver = {
+    .name = "8259 PIC",
+    .probe = i8259_Probe,
+    .init = i8259_Configure,
+    .disable = i8259_Disable,
+    .sendEndOfInterrupt = i8259_SendEndOfInterrupt,
+    .mask = i8259_Mask,
+    .unmask = i8259_Unmask,
+};
+
+const PICDriver* i8259_GetDriver()
+{
+    return &g_PicDriver;
+}

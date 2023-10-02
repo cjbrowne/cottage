@@ -1,3 +1,9 @@
 # Project exclude paths
 /build/
 /toolchain/
+
+# IDE generated files
+.idea
+
+# runtime generated debug files
+bx_enh_dbg.ini
