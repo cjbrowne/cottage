@@ -41,5 +41,6 @@ void write_serial(char a) {
 void print_serial(const char* msg) {
     while(*msg) {
         write_serial(*msg);
+        msg++;
     }
 }
