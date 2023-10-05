@@ -1,3 +1,3 @@
 #pragma once
 
-void klog(const char* module, const char* msg);
+void klog(const char *module, const char *msg, ...);
