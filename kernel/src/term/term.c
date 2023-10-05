@@ -1,11 +1,9 @@
 // currently only support the flanterm backend
 // future, maybe more? (unlikely though)
 
-#include <stdio.h>
 #include <flanterm/flanterm.h>
 #include <flanterm/backends/fb.h>
 #include <stdio.h>
-#include <mem/kmalloc.h>
 #include "klog/klog.h"
 #include "term.h"
 
@@ -39,11 +37,5 @@ size_t strlen(const char* str)
 
 void term_printf(const char* fmt, ...)
 {
-  va_list args;
-  char* buf = NULL;
-  size_t len = vsnprintf(buf, 0, fmt, args);
-  buf = kmalloc(len);
-  vsnprintf(buf, len, fmt, args);
-  term_write(buf, len);
-  kfree(buf);
+
 }
