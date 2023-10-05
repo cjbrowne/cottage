@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <string.h>
 #include <term/term.h>
 #include <klog/klog.h>
@@ -10,7 +11,9 @@ void acpi_init(XSDP_t* xsdp_table)
     {
         klog("acpi", "Assuming ACPI 1.0");
         term_printf("ACPI Revision: %d\n", xsdp_table->revision);
-        rsdt = (RSDT_t *) (xsdp_table->RSDT_address);
+        // pretty sure this next line is anything but safe... casting a 32 bit
+        // address to 64 bit and then expecting it to "just work" as a pointer
+        rsdt = (RSDT_t *) ((uint64_t)xsdp_table->RSDT_address);
         if (memcmp(xsdp_table->signature, "RSD PTR ", 8) != 0)
         {
             klog("acpi", "ACPI signature match error");

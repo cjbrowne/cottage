@@ -1,4 +1,10 @@
+// kernel headers
+#include <mem/kmalloc.h>
+#include <term/term.h>
 #include <klog/klog.h>
+#include <math/minmax.h>
+
+// c stdlib headers
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -30,6 +36,8 @@ void snputc(char **str, size_t n, char c) {
     (*str)++;
   }
 }
+
+#define MAX_PRINTF 4096
 
 int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {
   int state = PRINTF_STATE_NORMAL;
@@ -91,7 +99,7 @@ int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {
         break;
 
       case 's':
-        for (int i = 0; i < strlen(va_arg(args, const char *)); i++) {
+        for (size_t i = 0; i < strlen(va_arg(args, const char *)); i++) {
           snputc(&str, n--, va_arg(args, const char *)[i]);
         }
 
@@ -185,6 +193,11 @@ int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {
   }
 
   va_end(args);
+  // n is 0 if number of bytes written == orig_size
+  // n is <0 if number of bytes written > orig_size
+  // n is >0 if number of bytes written < orig_size
+  // so num bytes written == orig_size + (-n) (right?)
+  return orig_size + (-n);
 }
 
 const char g_HexChars[] = "0123456789abcdef";
@@ -194,6 +207,12 @@ int vsnprintf_unsigned(char **str, size_t n, unsigned long long number,
   char buffer[32];
   int pos = 0;
   int ret = 0;
+
+  // handle 0 as a special case (otherwise it won't get handled)
+  if (number == 0) {
+    snputc(str, 1, '0');
+    return 1;
+  }
 
   // convert number to ASCII
   do {
