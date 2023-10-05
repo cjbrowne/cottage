@@ -18,20 +18,16 @@
 #define PRINTF_LENGTH_LONG 3
 #define PRINTF_LENGTH_LONG_LONG 4
 
-// forward declaration of "local" functions
-int vsnprintf_unsigned(char **str, size_t n, unsigned long long number,
-                       int radix);
-int vsnprintf_signed(char **str, size_t n, long long number, int radix);
-void snputc(char **str, size_t n, char c);
-
-void snputc(char **str, size_t n, char c) {
-  if (n > 0) {
-    **str = c;
-    (*str)++;
-  }
+int sputc(char *str, char c)
+{
+  
 }
 
 int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {
+  bool writing =
+      true; // turn writing to the buffer off if we reach the end
+            // this is used so we can still keep track of how many bytes we
+            // would have written and conform to the return value spec
   int state = PRINTF_STATE_NORMAL;
   int length = PRINTF_LENGTH_DEFAULT;
   int radix = 10;
@@ -47,7 +43,7 @@ int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {
         state = PRINTF_STATE_LENGTH;
         break;
       default:
-        snputc(&str, n--, *fmt);
+        SPUTC(*fmt);
         break;
       }
       break;
@@ -87,18 +83,15 @@ int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {
     PRINTF_STATE_SPEC_:
       switch (*fmt) {
       case 'c':
-        snputc(&str, n--, (char)va_arg(args, int));
+        SPUTC((char)va_arg(args, int));
         break;
 
       case 's':
-        for (int i = 0; i < strlen(va_arg(args, const char *)); i++) {
-          snputc(&str, n--, va_arg(args, const char *)[i]);
-        }
-
+        SPUTS(va_arg(args, const char *), strlen(va_arg(args, const char *)));
         break;
 
       case '%':
-        snputc(&str, n--, '%');
+        SPUTC('%');
         break;
 
       case 'd':
@@ -139,15 +132,15 @@ int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {
           case PRINTF_LENGTH_SHORT_SHORT:
           case PRINTF_LENGTH_SHORT:
           case PRINTF_LENGTH_DEFAULT:
-            n -= vsnprintf_signed(&str, n, va_arg(args, int), radix);
+            vnsprintf_signed(str, va_arg(args, int), radix);
             break;
 
           case PRINTF_LENGTH_LONG:
-            n -= vsnprintf_signed(&str, n, va_arg(args, long), radix);
+            vnsprintf_signed(va_arg(args, long), radix);
             break;
 
           case PRINTF_LENGTH_LONG_LONG:
-            n -= vsnprintf_signed(&str, n, va_arg(args, long long), radix);
+            vnsprintf_signed(va_arg(args, long long), radix);
             break;
           }
         } else {
@@ -155,15 +148,15 @@ int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {
           case PRINTF_LENGTH_SHORT_SHORT:
           case PRINTF_LENGTH_SHORT:
           case PRINTF_LENGTH_DEFAULT:
-            n -= vsnprintf_unsigned(&str, n, va_arg(args, unsigned int), radix);
+            vnsprintf_unsigned(va_arg(args, unsigned int), radix);
             break;
 
           case PRINTF_LENGTH_LONG:
-            n -= vsnprintf_unsigned(&str, n, va_arg(args, unsigned long), radix);
+            vnsprintf_unsigned(va_arg(args, unsigned long), radix);
             break;
 
           case PRINTF_LENGTH_LONG_LONG:
-            n -= vsnprintf_unsigned(&str, n, va_arg(args, unsigned long long), radix);
+            vnsprintf_unsigned(va_arg(args, unsigned long long), radix);
             break;
           }
         }
@@ -189,11 +182,10 @@ int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {
 
 const char g_HexChars[] = "0123456789abcdef";
 
-int vsnprintf_unsigned(char **str, size_t n, unsigned long long number,
+int vnsprintf_unsigned(char **str, size_t n, unsigned long long number,
                        int radix) {
   char buffer[32];
   int pos = 0;
-  int ret = 0;
 
   // convert number to ASCII
   do {
@@ -202,19 +194,15 @@ int vsnprintf_unsigned(char **str, size_t n, unsigned long long number,
     buffer[pos++] = g_HexChars[rem];
   } while (number > 0);
 
-  ret = (pos - 1);
-
   // print number in reverse order
-  while (n > 0 && --pos >= 0)
-    snputc(str, pos, (buffer[pos]));
-
-  return ret;
+  while (--pos >= 0)
+    SPUTC(buffer[pos]);
 }
 
-int vsnprintf_signed(char **str, size_t n, long long number, int radix) {
+int term_printf_signed(char *str, size_t n, long long number, int radix) {
   if (number < 0) {
-    snputc(str, n, '-');
-    return vsnprintf_unsigned(str, n, -number, radix) + 1;
+    term_putc('-');
+    term_printf_unsigned(-number, radix);
   } else
-    return vsnprintf_unsigned(str, n, number, radix);
+    term_printf_unsigned(number, radix);
 }
