@@ -4,6 +4,7 @@
  */
 
 #include "klog.h"
+#include <math/si.h>
 #include <mem/kmalloc.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -12,8 +13,8 @@
 #include <string.h>
 #include <term/term.h>
 
-// keep 128K of logs in the ringbuffer at a time (128K == 131072 bytes)
-#define KLOG_BUFSIZE 131072
+// keep 128K of logs in the ringbuffer at a time
+#define KLOG_BUFSIZE KiB(128)
 
 static char klog_buf[KLOG_BUFSIZE];
 static size_t log_end = 0;
@@ -23,8 +24,6 @@ static size_t log_end = 0;
 extern bool have_term;
 extern bool have_malloc;
 
-#define INC_LOGEND ((++log_end == KLOG_BUFSIZE) && (log_end = 0), log_end)
-
 void klog_putc(char c);
 
 void klog(const char *module, const char *fmt, ...) {
@@ -33,13 +32,15 @@ void klog(const char *module, const char *fmt, ...) {
   size_t log_end_start = log_end;
   klog_putc('[');
   while (*module) {
-    klog_buf[INC_LOGEND] = *module;
+    klog_buf[log_end++] = *module;
+    if (log_end == KLOG_BUFSIZE)
+      log_end = 0;
     module++;
   }
   klog_putc(']');
   klog_putc(' ');
 
-  int max_chars = KLOG_BUFSIZE - log_end;
+  int max_chars = KLOG_BUFSIZE - log_end - 1;
   int chars_written = vsnprintf(klog_buf + log_end, max_chars, fmt, args);
 
   if (chars_written > max_chars) {
@@ -76,9 +77,14 @@ void klog(const char *module, const char *fmt, ...) {
       // write the bytes from the start of the buffer
       term_write(klog_buf, log_end);
     } else {
+      //      term_printf("Printing");
       term_write(klog_buf + log_end_start, (log_end - log_end_start));
     }
   }
 }
 
-void klog_putc(char c) { klog_buf[INC_LOGEND] = c; }
+void klog_putc(char c) {
+  klog_buf[log_end++] = c;
+  if (log_end == KLOG_BUFSIZE)
+    log_end = 0;
+}
