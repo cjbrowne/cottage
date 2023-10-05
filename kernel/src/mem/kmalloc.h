@@ -10,3 +10,5 @@ size_t kmalloc_init();
 void *kmalloc(size_t len);
 
 void kfree(void *ptr);
+
+size_t get_free_pages();
