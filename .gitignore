@@ -1,8 +1,9 @@
 # Project exclude paths
-/limine
-/ovmf
-*.iso
-*.hdd
+/build/
+/toolchain/
 
 # IDE generated files
 .idea
+
+# runtime generated debug files
+bx_enh_dbg.ini
