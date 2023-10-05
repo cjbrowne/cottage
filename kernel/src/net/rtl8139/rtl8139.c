@@ -20,7 +20,6 @@ network_driver* rtl8139_get_driver()
 bool rtl8139_probe()
 {
 
-    return false;
 }
 
 void rtl8139_init()
