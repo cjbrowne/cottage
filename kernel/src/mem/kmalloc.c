@@ -23,6 +23,12 @@ typedef struct memory_page {
 __attribute__((section(".heap"))) static uint8_t kmalloc_mem[KMALLOC_HEAP_SIZE];
 
 static memory_page* page_table[KMALLOC_HEAP_SIZE / PAGE_SIZE];
+static size_t free_pages = 0;
+
+size_t get_free_pages()
+{
+  return free_pages;
+}
 
 size_t kmalloc_init() {
 
@@ -47,6 +53,8 @@ size_t kmalloc_init() {
     memcpy(kmalloc_mem + ((sizeof page) * i), &page, sizeof page);
   }
   
+  free_pages = PAGE_COUNT - page_table_pages;
+
   panic("temp");
   return KMALLOC_HEAP_SIZE;
 }
@@ -72,6 +80,7 @@ void *kmalloc(size_t len) {
       for (pages_allocated = 0; pages_allocated < pages_needed;
            pages_allocated++) {
         page_table[i + pages_allocated]->free = false;
+        free_pages--;
       }
       page_table[i]->count = pages_needed;
       return page_table[i]->base;
@@ -88,6 +97,7 @@ void kfree(void *ptr) {
       // mark all these pages as free
       for (size_t j = 0; j < page_table[i]->count; j++) {
         page_table[i + j]->free = true;
+        free_pages++;
       }
     }
   }
