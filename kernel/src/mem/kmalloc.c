@@ -1,8 +1,10 @@
 #include "kmalloc.h"
 #include <panic.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include <klog/klog.h>
+#include <math/si.h>
 
 typedef struct memory_page {
   void *base;
@@ -10,38 +12,43 @@ typedef struct memory_page {
   size_t count; // used for tracking multi page allocations, usually 0
 } memory_page;
 
-static memory_page **page_table;
-size_t kernel_pagecount;
+// heap size in bytes
+#define KMALLOC_HEAP_SIZE MiB(2)
 
+// use any po2 for page size - non-po2s could cause alignment issues
 #define PAGE_SIZE 512
 
-void kmalloc_init(void *start, size_t len) {
+#define PAGE_COUNT (KMALLOC_HEAP_SIZE / PAGE_SIZE)
 
-  page_table = start;
-  kernel_pagecount = len / PAGE_SIZE;
+__attribute__((section(".heap"))) static uint8_t kmalloc_mem[KMALLOC_HEAP_SIZE];
 
-  size_t page_table_size = sizeof(memory_page) * kernel_pagecount;
+static memory_page* page_table[KMALLOC_HEAP_SIZE / PAGE_SIZE];
+
+size_t kmalloc_init() {
+
+  size_t page_table_size = sizeof(memory_page) * PAGE_COUNT;
   size_t page_table_pages = page_table_size / PAGE_SIZE;
   if (page_table_size % PAGE_SIZE != 0) {
     page_table_pages++;
   }
 
   klog("mem", "Kernel page table pages: %d", page_table_pages);
-  klog("mem", "Allocating %d pages of memory for the kernel", kernel_pagecount);
+  klog("mem", "Allocating %d pages of memory for the kernel", PAGE_COUNT);
   klog("mem", "Pages are %d bytes long", PAGE_SIZE);
 
   // populate the page table
-  for (size_t i = 0; i < len / PAGE_SIZE; i++) {
+  for (size_t i = 0; i < PAGE_COUNT; i++) {
     memory_page page = {
-        .free = (i != 0), // page 0 is the page table, so is never free
-        .base = start + (i * PAGE_SIZE),
+        // mark page table pages as used
+        .free = (i > page_table_pages),
+        .base = kmalloc_mem + (i * PAGE_SIZE),
         .count = 0,
     };
-    memcpy(start + ((sizeof page) * i), &page, sizeof page);
+    memcpy(kmalloc_mem + ((sizeof page) * i), &page, sizeof page);
   }
   
   panic("temp");
-  
+  return KMALLOC_HEAP_SIZE;
 }
 
 void *kmalloc(size_t len) {
@@ -53,7 +60,7 @@ void *kmalloc(size_t len) {
   }
   // todo: highly naive and very basic memory allocator
   // can only allocate an entire page at a time
-  for (size_t i = 0; i < kernel_pagecount; i++) {
+  for (size_t i = 0; i < PAGE_COUNT; i++) {
     size_t pages_allocated = 0;
     for (pages_allocated = 0; pages_allocated < pages_needed;
          pages_allocated++) {
@@ -76,7 +83,7 @@ void *kmalloc(size_t len) {
 }
 
 void kfree(void *ptr) {
-  for (size_t i = 0; i < kernel_pagecount; i++) {
+  for (size_t i = 0; i < PAGE_COUNT; i++) {
     if (page_table[i]->base == ptr) {
       // mark all these pages as free
       for (size_t j = 0; j < page_table[i]->count; j++) {

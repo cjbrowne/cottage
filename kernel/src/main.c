@@ -37,11 +37,6 @@ static volatile struct limine_rsdp_request rsdp_request = {
     .revision = 0,
 };
 
-static volatile struct limine_memmap_request memmap_request = {
-    .id = LIMINE_MEMMAP_REQUEST,
-    .revision = 0,
-};
-
 static volatile struct limine_paging_mode_request paging_request = {
     .id = LIMINE_PAGING_MODE_REQUEST,
     .revision = 0,
@@ -53,9 +48,6 @@ static volatile struct limine_paging_mode_request paging_request = {
 // If renaming _start() to something else, make sure to change the
 // linker script accordingly.
 void _start(void) {
-
-  // setup kmalloc
-  void *kmalloc_start = NULL;
 
   // Ensure we got a framebuffer.
   if (framebuffer_request.response == NULL ||
@@ -88,30 +80,15 @@ void _start(void) {
   }
 
   klog("main", "Making sure paging is enabled");
-  if(paging_request.response == NULL) {
+  if (paging_request.response == NULL) {
     panic("Paging disabled.  Paging must be enabled for the kernel to work.");
   }
 
   klog("main", "Paging mode %x enabled", paging_request.response->mode);
 
-  klog("main", "Loading memory map");
-  if (memmap_request.response == NULL) {
-    panic("No memory model available, cannot continue boot");
-  } else {
-    klog("main", "Found %d memory regions",
-         memmap_request.response->entry_count);
-    for (uint64_t i = memmap_request.response->entry_count; i > 0; i--) {
-      struct limine_memmap_entry *entry = memmap_request.response->entries[i];
-      if (entry->type == LIMINE_MEMMAP_USABLE) {
-        klog("main", "Found %d bytes of usable memory at 0x%x", entry->length,
-             entry->base);
-        if (entry->length > 0 && kmalloc_start == NULL) {
-          kmalloc_start = (void *)entry->base;
-          kmalloc_init(kmalloc_start, entry->length);
-        }
-      }
-    }
-  }
+  klog("main", "Initializing malloc");
+  size_t kmalloc_size = kmalloc_init();
+  klog("main", "%d bytes ready for allocation", kmalloc_size);
 
   have_malloc = true;
 
