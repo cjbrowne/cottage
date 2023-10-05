@@ -8,4 +8,3 @@
 
 void term_init(uint32_t *framebuffer, size_t width, size_t height, size_t pitch);
 void term_write(const char* string, size_t count);
-void term_printf(const char* fmt, ...);
