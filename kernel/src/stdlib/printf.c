@@ -1,8 +1,8 @@
 // kernel headers
-#include <mem/kmalloc.h>
-#include <term/term.h>
 #include <klog/klog.h>
 #include <math/minmax.h>
+#include <mem/kmalloc.h>
+#include <term/term.h>
 
 // c stdlib headers
 #include <stdarg.h>
@@ -167,11 +167,13 @@ int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {
             break;
 
           case PRINTF_LENGTH_LONG:
-            n -= vsnprintf_unsigned(&str, n, va_arg(args, unsigned long), radix);
+            n -=
+                vsnprintf_unsigned(&str, n, va_arg(args, unsigned long), radix);
             break;
 
           case PRINTF_LENGTH_LONG_LONG:
-            n -= vsnprintf_unsigned(&str, n, va_arg(args, unsigned long long), radix);
+            n -= vsnprintf_unsigned(&str, n, va_arg(args, unsigned long long),
+                                    radix);
             break;
           }
         }
@@ -225,11 +227,12 @@ int vsnprintf_unsigned(char **str, size_t n, unsigned long long number,
     buffer[pos++] = g_HexChars[rem];
   } while (number > 0);
 
-  ret = (pos - 1);
-
   // print number in reverse order
-  while (n > 0 && pos-- >= 0)
+  while (n > 0 && pos-- >= 0) {
     snputc(str, n, (buffer[pos]));
+    // every time we iterate through this loop, we have written a byte
+    ret++;
+  }
 
   return ret;
 }

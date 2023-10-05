@@ -39,6 +39,7 @@ SECTIONS
 
     .data : {
         *(.data .data.*)
+        *(.heap)
     } :data
 
     /* Dynamic section for relocations, both in its own PHDR and inside data PHDR */
@@ -54,8 +55,6 @@ SECTIONS
         *(.bss .bss.*)
         *(COMMON)
 
-        . = ALIGN(4K);
-        *(.heap)
     } :data
 
     /* Discard .note.* and .eh_frame since they may cause issues on some hosts. */

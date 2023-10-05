@@ -1,10 +1,10 @@
 #include "kmalloc.h"
+#include <klog/klog.h>
+#include <math/si.h>
 #include <panic.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <klog/klog.h>
-#include <math/si.h>
 
 typedef struct memory_page {
   void *base;
@@ -22,13 +22,10 @@ typedef struct memory_page {
 
 __attribute__((section(".heap"))) static uint8_t kmalloc_mem[KMALLOC_HEAP_SIZE];
 
-static memory_page* page_table[KMALLOC_HEAP_SIZE / PAGE_SIZE];
+static memory_page *page_table[KMALLOC_HEAP_SIZE / PAGE_SIZE];
 static size_t free_pages = 0;
 
-size_t get_free_pages()
-{
-  return free_pages;
-}
+size_t get_free_pages() { return free_pages; }
 
 size_t kmalloc_init() {
 
@@ -38,6 +35,7 @@ size_t kmalloc_init() {
     page_table_pages++;
   }
 
+  klog("mem", "kmalloc info:");
   klog("mem", "Kernel page table pages: %d", page_table_pages);
   klog("mem", "Allocating %d pages of memory for the kernel", PAGE_COUNT);
   klog("mem", "Pages are %d bytes long", PAGE_SIZE);
@@ -52,10 +50,9 @@ size_t kmalloc_init() {
     };
     memcpy(kmalloc_mem + ((sizeof page) * i), &page, sizeof page);
   }
-  
+
   free_pages = PAGE_COUNT - page_table_pages;
 
-  panic("temp");
   return KMALLOC_HEAP_SIZE;
 }
 

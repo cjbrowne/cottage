@@ -84,11 +84,12 @@ void _start(void) {
     panic("Paging disabled.  Paging must be enabled for the kernel to work.");
   }
 
-  klog("main", "Paging mode %x enabled", paging_request.response->mode);
+    klog("main", "Paging mode %x enabled", paging_request.response->mode);
 
   klog("main", "Initializing malloc");
   size_t kmalloc_size = kmalloc_init();
   klog("main", "%d bytes ready for allocation", kmalloc_size);
+  panic("temp");
 
   have_malloc = true;
 
