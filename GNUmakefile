@@ -3,9 +3,6 @@ override MAKEFLAGS += -rR
 
 override IMAGE_NAME := webos
 
-# set to true to use the nightly OVMF image
-OVMF_USE_NIGHTLY := false
-
 # Convenience macro to reliably declare user overridable variables.
 define DEFAULT_VAR =
     ifeq ($(origin $1),default)
@@ -15,12 +12,6 @@ define DEFAULT_VAR =
         override $(1) := $(2)
     endif
 endef
-
-OVMF_IMAGE := /usr/share/ovmf/OVMF.fd
-
-ifeq ($(OVMF_USE_NIGHTLY), true)
-	OVMF_IMAGE := ovfm/OVMF.fd
-endif
 
 # Toolchain for building the 'limine' executable for the host.
 override DEFAULT_HOST_CC := cc
@@ -44,10 +35,9 @@ all-hdd: $(IMAGE_NAME).hdd
 run: $(IMAGE_NAME).iso
 	qemu-system-x86_64 -M q35 -m 2G -cdrom $(IMAGE_NAME).iso -boot d
 
-
 .PHONY: run-uefi
 run-uefi: ovmf $(IMAGE_NAME).iso
-	qemu-system-x86_64 -M q35 -m 2G -bios $(OVMF_IMAGE) -cdrom $(IMAGE_NAME).iso -boot d
+	qemu-system-x86_64 -M q35 -m 2G -bios ovmf/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d
 
 .PHONY: run-hdd
 run-hdd: $(IMAGE_NAME).hdd
