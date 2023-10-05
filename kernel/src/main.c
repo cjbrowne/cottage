@@ -93,31 +93,26 @@ void _start(void) {
     // Ensure we got a framebuffer.
     if (framebuffer_request.response == NULL
      || framebuffer_request.response->framebuffer_count < 1) {
-        print_serial("ERR: No framebuffer\r\n");
+        print_serial("ERR: No framebuffer\n");
         hcf();
     }
 
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
 
-    print_serial("Initialising tty\r\n");
-
-
     term_init(
             framebuffer->address, framebuffer->width, framebuffer->height, framebuffer->pitch
             );
-
-    print_serial("Switching to tty print\r\n");
 
     TERM_WRITE_BUF("=== WebOS v0.0.1a (snapshot release) ===\n");
     TERM_WRITE_BUF("Parsing DTB...");
     // Ensure we got a DTB
     if (dtb_request.response == NULL) {
-        TERM_WRITE_BUF("NOPE\r\nDTB Not found (wrong platform, or not booting in UEFI mode?)");
-    } else {
-        dtb_parse(dtb_request.response->dtb_ptr);
-        TERM_WRITE_BUF("Done\n");
+        TERM_WRITE_BUF("ERR\nPANIC! DTB Not found (maybe booted in non-UEFI mode?)");
+        hcf();
     }
+    dtb_parse(dtb_request.response->dtb_ptr);
+    TERM_WRITE_BUF("Done\n");
 
     TERM_WRITE_BUF("Setting up network...");
 
