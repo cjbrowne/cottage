@@ -193,6 +193,10 @@ int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {
   }
 
   va_end(args);
+
+  // add a nul byte at the end as per the spec
+  // but exclude it from the count of bytes written
+  snputc(&str, n, '\0');
   // n is 0 if number of bytes written == orig_size
   // n is <0 if number of bytes written > orig_size
   // n is >0 if number of bytes written < orig_size
@@ -224,8 +228,8 @@ int vsnprintf_unsigned(char **str, size_t n, unsigned long long number,
   ret = (pos - 1);
 
   // print number in reverse order
-  while (n > 0 && --pos >= 0)
-    snputc(str, pos, (buffer[pos]));
+  while (n > 0 && pos-- >= 0)
+    snputc(str, n, (buffer[pos]));
 
   return ret;
 }
