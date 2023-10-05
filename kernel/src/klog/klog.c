@@ -39,7 +39,6 @@ void klog(const char *module, const char *fmt, ...) {
   klog_putc(']');
   klog_putc(' ');
 
-  // argggghhhh
   int max_chars = KLOG_BUFSIZE - log_end;
   int chars_written = vsnprintf(klog_buf + log_end, max_chars, fmt, args);
 
@@ -77,7 +76,7 @@ void klog(const char *module, const char *fmt, ...) {
       // write the bytes from the start of the buffer
       term_write(klog_buf, log_end);
     } else {
-      term_write(klog_buf + log_end_start, (log_end - log_end_start) + 1);
+      term_write(klog_buf + log_end_start, (log_end - log_end_start));
     }
   }
 }
