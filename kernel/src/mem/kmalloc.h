@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-void kmalloc_init(void* start, size_t len);
+size_t kmalloc_init();
 
 // quick and dirty memory allocator,
 // returns a pointer to an area of free memory
