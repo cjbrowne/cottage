@@ -2,8 +2,10 @@
 #include <klog/klog.h>
 #include <math/si.h>
 #include <panic.h>
+#include <serial/serial.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 typedef struct memory_page {
@@ -57,6 +59,11 @@ size_t kmalloc_init() {
 }
 
 void *kmalloc(size_t len) {
+  // the only "safe" way to print debugging info during malloc is to the serial
+  // port unfortunately, we don't have printf because it relies on malloc
+  // internally :'(
+  print_serial("Allocating memory");
+
   size_t pages_needed = len / PAGE_SIZE;
   // if we have stray bytes after the last page,
   // we need an extra page for those

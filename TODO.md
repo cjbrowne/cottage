@@ -4,4 +4,5 @@
 
 * Build network stack [in progress]
 * Build web server
-* 
+* Start building frontend site
+* Develop protocol for system calls

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 // Halt and catch fire function.
-static void hcf(void) {
+__attribute__((noreturn)) static void hcf(void) {
   asm ("cli");
   for (;;) {
     asm ("hlt");
@@ -13,7 +13,7 @@ static void hcf(void) {
 
 extern bool have_term;
 
-void panic(char* msg)
+__attribute__((noreturn)) void panic(const char* msg)
 {
   if(have_term)
   {

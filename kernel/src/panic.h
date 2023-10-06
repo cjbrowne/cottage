@@ -1,3 +1,3 @@
 #pragma once
 
-void panic(char* msg);
+__attribute__((noreturn)) void panic(const char* msg);

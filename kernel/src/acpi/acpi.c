@@ -1,28 +1,18 @@
+#include "acpi.h"
+#include <klog/klog.h>
+#include <lai/helpers/sci.h>
+#include <lai/host.h>
+#include <panic.h>
 #include <stdint.h>
 #include <string.h>
 #include <term/term.h>
-#include <klog/klog.h>
-#include "acpi.h"
 
-void acpi_init(XSDP_t* xsdp_table)
-{
-    RSDT_t* rsdt;
-    if (xsdp_table->revision <= 2)
-    {
-        klog("acpi", "Assuming ACPI 1.0");
-        term_printf("ACPI Revision: %d\n", xsdp_table->revision);
-        // pretty sure this next line is anything but safe... casting a 32 bit
-        // address to 64 bit and then expecting it to "just work" as a pointer
-        rsdt = (RSDT_t *) ((uint64_t)xsdp_table->RSDT_address);
-        if (memcmp(xsdp_table->signature, "RSD PTR ", 8) != 0)
-        {
-            klog("acpi", "ACPI signature match error");
-            term_printf("Signature: %x\n", xsdp_table->signature);
-        }
-    }
-    else
-    {
+#define LAI_ACPI_MODE_LEGACY_8259 0
+#define LAI_ACPI_MODE_APIC 1
+#define LAI_ACPI_MODE_SAPIC 2
 
-    }
-
+void acpi_init(__attribute__((unused)) XSDP_t *xsdp_table) {
+  klog("acpi", "Enabling ACPI mode in LAI");
+  lai_enable_acpi(LAI_ACPI_MODE_SAPIC);
+  klog("acpi", "ACPI mode enabled");
 }

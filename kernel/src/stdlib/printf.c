@@ -99,11 +99,14 @@ int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {
         break;
 
       case 's':
-        for (size_t i = 0; i < strlen(va_arg(args, const char *)); i++) {
-          snputc(&str, n--, va_arg(args, const char *)[i]);
-        }
+        {
+            const char* s = va_arg(args, const char*);
+            for (size_t i = 0; i < strlen(s); i++) {
+              snputc(&str, n--, s[i]);
+            }
 
-        break;
+            break;
+        }
 
       case '%':
         snputc(&str, n--, '%');
@@ -193,8 +196,6 @@ int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {
 
     fmt++;
   }
-
-  va_end(args);
 
   // add a nul byte at the end as per the spec
   // but exclude it from the count of bytes written

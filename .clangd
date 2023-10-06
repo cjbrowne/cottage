@@ -1,0 +1,4 @@
+CompileFlags:
+Add:
+- -Ikernel/src
+- -Ikernel/src/lai/include

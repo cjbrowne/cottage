@@ -81,6 +81,7 @@ void klog(const char *module, const char *fmt, ...) {
       term_write(klog_buf + log_end_start, (log_end - log_end_start));
     }
   }
+  va_end(args);
 }
 
 void klog_putc(char c) {
