@@ -12,7 +12,9 @@ typedef struct memory_page {
   void *base;
   bool free;
   size_t count; // used for tracking multi page allocations, usually 0
-} memory_page;
+} __attribute__((packed)) memory_page;
+
+extern bool have_malloc;
 
 // heap size in bytes
 #define KMALLOC_HEAP_SIZE MiB(2)
@@ -24,7 +26,7 @@ typedef struct memory_page {
 
 __attribute__((section(".heap"))) static uint8_t kmalloc_mem[KMALLOC_HEAP_SIZE];
 
-static memory_page *page_table[KMALLOC_HEAP_SIZE / PAGE_SIZE];
+static memory_page page_table[KMALLOC_HEAP_SIZE / PAGE_SIZE];
 static size_t free_pages = 0;
 
 size_t get_free_pages() { return free_pages; }
@@ -45,12 +47,11 @@ size_t kmalloc_init() {
   // populate the page table
   for (size_t i = 0; i < PAGE_COUNT; i++) {
     memory_page page = {
-        // mark page table pages as used
-        .free = (i > page_table_pages),
+        .free = true,
         .base = kmalloc_mem + (i * PAGE_SIZE),
         .count = 0,
     };
-    memcpy(kmalloc_mem + ((sizeof page) * i), &page, sizeof page);
+    page_table[i] = page;
   }
 
   free_pages = PAGE_COUNT - page_table_pages;
@@ -59,11 +60,6 @@ size_t kmalloc_init() {
 }
 
 void *kmalloc(size_t len) {
-  // the only "safe" way to print debugging info during malloc is to the serial
-  // port unfortunately, we don't have printf because it relies on malloc
-  // internally :'(
-  print_serial("Allocating memory");
-
   size_t pages_needed = len / PAGE_SIZE;
   // if we have stray bytes after the last page,
   // we need an extra page for those
@@ -74,33 +70,32 @@ void *kmalloc(size_t len) {
   // can only allocate an entire page at a time
   for (size_t i = 0; i < PAGE_COUNT; i++) {
     size_t pages_allocated = 0;
-    for (pages_allocated = 0; pages_allocated < pages_needed;
+    for (pages_allocated = 0;
+         (i + pages_allocated < PAGE_COUNT) && pages_allocated < pages_needed;
          pages_allocated++) {
-      if (!page_table[i + pages_allocated]->free)
+      if (!page_table[i + pages_allocated].free)
         break;
     }
     if (pages_allocated == pages_needed) {
       // set the pages as allocated
       for (pages_allocated = 0; pages_allocated < pages_needed;
            pages_allocated++) {
-        page_table[i + pages_allocated]->free = false;
+        page_table[i + pages_allocated].free = false;
         free_pages--;
       }
-      page_table[i]->count = pages_needed;
-      return page_table[i]->base;
+      page_table[i].count = pages_needed;
+      return page_table[i].base;
     }
   }
   panic("Kernel OOM");
-  // this return technically can't be reached because of the above panic
-  return NULL;
 }
 
 void kfree(void *ptr) {
   for (size_t i = 0; i < PAGE_COUNT; i++) {
-    if (page_table[i]->base == ptr) {
+    if (page_table[i].base == ptr) {
       // mark all these pages as free
-      for (size_t j = 0; j < page_table[i]->count; j++) {
-        page_table[i + j]->free = true;
+      for (size_t j = 0; j < page_table[i].count; j++) {
+        page_table[i + j].free = true;
         free_pages++;
       }
     }

@@ -95,6 +95,7 @@ void _start(void) {
   if (rsdp_request.response == NULL) {
     panic("no RSDP present");
   } else {
+    klog("main", "Found RSDP at %x", rsdp_request.response->address);
     acpi_init(rsdp_request.response->address);
   }
 

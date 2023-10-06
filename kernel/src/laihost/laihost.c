@@ -1,8 +1,12 @@
 #include <klog/klog.h>
 #include <string.h>
 #include <mem/kmalloc.h>
+
 #include <lai/host.h>
+#include <acpispec/tables.h>
+
 #include <panic.h>
+#include <acpi/acpi.h>
 
 /* these functions are strongly linked,
     so are 100% needed for the thing to even compile
@@ -58,4 +62,19 @@ void laihost_log(int lvl, const char *msg)
 __attribute__((noreturn)) void laihost_panic(const char *msg)
 {
   panic(msg);
+}
+
+/**
+ * Table functions
+*/
+
+void* laihost_scan(const char *sig, size_t index) {
+  if(memcmp(sig, "DSDT", 4) == 0) {
+    // todo: detect whether we're using XDST or RDST, and use the correct
+    // field (x_dsdt or dsdt, respectively) -- for now we just assume XDST
+    // because RDST is a pain in the arse
+    return (void*)((acpi_fadt_t*) acpi_find_table("FACP", 0))->x_dsdt;
+  } else {
+    return acpi_find_table((char*)sig, index);
+  }
 }
