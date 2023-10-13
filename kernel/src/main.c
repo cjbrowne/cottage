@@ -1,3 +1,4 @@
+#include <interrupt/idt/idt.h>
 #include <acpi/acpi.h>
 #include <devicetree/dtb.h>
 #include <klog/klog.h>
@@ -89,6 +90,10 @@ void _start(void) {
   klog("main", "Initializing malloc");
   size_t kmalloc_size = kmalloc_init();
   klog("main", "%d bytes ready for allocation", kmalloc_size);
+
+  klog("main", "Initializing interrupt handlers");
+  idt_init();
+  klog("main", "Interrupt handling enabled");
 
   have_malloc = true;
   klog("main", "Loading RSDP");

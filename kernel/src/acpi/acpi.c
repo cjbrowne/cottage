@@ -15,7 +15,7 @@
 static acpi_xsdt_t *xsdt = NULL;
 static acpi_rsdt_t *rsdt = NULL;
 
-void acpi_init(__attribute__((unused)) acpi_xsdp_t *xsdp_table) {
+void acpi_init(acpi_xsdp_t *xsdp_table) {
   // store xsdp_table pointer in a (static) global variable,
   // allowing us to use it in other functions in this file
   klog("acpi", "ACPI Revision: %d", xsdp_table->revision);
@@ -30,6 +30,7 @@ void acpi_init(__attribute__((unused)) acpi_xsdp_t *xsdp_table) {
   klog("acpi", "Enabling ACPI mode in LAI");
   lai_enable_acpi(LAI_ACPI_MODE_APIC);
   klog("acpi", "ACPI mode enabled");
+
 }
 
 void *acpi_find_table_rsdt(char *sig, size_t idx);

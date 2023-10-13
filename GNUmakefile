@@ -40,6 +40,10 @@ all: $(IMAGE_NAME).iso
 .PHONY: all-hdd
 all-hdd: $(IMAGE_NAME).hdd
 
+# alias test=run-hdd-uefi (cuts down on keystrokes)
+.PHONY: test
+test: run-uefi
+
 .PHONY: run
 run: $(IMAGE_NAME).iso
 	qemu-system-x86_64 -M q35 -m 2G -cdrom $(IMAGE_NAME).iso -boot d
