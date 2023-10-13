@@ -45,10 +45,17 @@ static volatile struct limine_paging_mode_request paging_request = {
     .flags = 0,
 };
 
+static volatile struct limine_kernel_address_request kernel_address_request = {
+    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
+    .revision = 0,
+};
+
 // The following will be our kernel's entry point.
 // If renaming _start() to something else, make sure to change the
 // linker script accordingly.
 void _start(void) {
+
+  uint64_t kernel_address = 0;
 
   // Ensure we got a framebuffer.
   if (framebuffer_request.response == NULL ||
@@ -71,6 +78,15 @@ void _start(void) {
   have_term = true;
 
   TERM_WRITE_BUF("=== WebOS v0.0.1a (snapshot release) ===\n");
+
+  // ensure we got a kernel response
+  if (kernel_address_request.response == NULL) {
+    klog("main", "No kernel address"); // warning that we don't know the kernel's address
+  }
+
+  // kernel address refers to the virtual address
+  kernel_address = kernel_address_request.response->physical_base;
+
   klog("main", "Loading DTB");
   // Ensure we got a DTB
   if (dtb_request.response == NULL) {
@@ -92,7 +108,12 @@ void _start(void) {
   klog("main", "%d bytes ready for allocation", kmalloc_size);
 
   klog("main", "Initializing interrupt handlers");
-  idt_init();
+  // the GDT is provided by limine, and places the kernel in
+  // the 64 bit code segment
+  // kernel segment is loaded at index 5 (bits 3-15),
+  // in the GDT (bit 2),
+  // with ring 0 privileges needed for the IDT (bits 0-1)
+  idt_init((5<<3) | 0x00);
   klog("main", "Interrupt handling enabled");
 
   have_malloc = true;

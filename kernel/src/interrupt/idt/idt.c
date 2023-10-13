@@ -105,7 +105,7 @@ status->interrupt_number); asm("hlt"); break;
 }
 */
 
-void idt_init() {
+void idt_init(uint16_t kernel_segment_selector) {
   int i = 0;
   for (i = 0; i < IDT_ENTRY_COUNT; i++) {
     idt[i].type_attributes = 0;
@@ -117,51 +117,51 @@ void idt_init() {
     idt[i].selector = 0;
   }
 
-  set_idt_entry(0x00, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x00, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_0);
-  set_idt_entry(0x01, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x01, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_1);
-  set_idt_entry(0x02, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x02, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_2);
-  set_idt_entry(0x03, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x03, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_3);
-  set_idt_entry(0x04, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x04, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_4);
-  set_idt_entry(0x05, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x05, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_5);
-  set_idt_entry(0x06, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x06, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_6);
-  set_idt_entry(0x07, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x07, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_7);
-  set_idt_entry(0x08, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x08, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_error_code_8);
-  set_idt_entry(0x09, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x09, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_9);
-  set_idt_entry(0x0A, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x0A, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_error_code_10);
-  set_idt_entry(0x0B, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x0B, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_error_code_11);
-  set_idt_entry(0x0C, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x0C, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_error_code_12);
-  set_idt_entry(0x0D, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x0D, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_error_code_13);
-  set_idt_entry(0x0E, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x0E, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_error_code_14);
-  set_idt_entry(0x0F, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x0F, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_15);
-  set_idt_entry(0x10, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x10, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_16);
-  set_idt_entry(0x11, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x11, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_error_code_17);
-  set_idt_entry(0x12, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x12, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_18);
-  set_idt_entry(0x20, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x20, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_32);
-  set_idt_entry(0x21, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x21, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_33);
-  set_idt_entry(0x22, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0x22, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_34);
-  set_idt_entry(0xFF, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, KERNEL_CS, 0,
+  set_idt_entry(0xFF, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0,
                 interrupt_service_routine_255);
 
   klog("idt", "Loading IDT descriptor at %x, IDT table is at %x", &idtd,

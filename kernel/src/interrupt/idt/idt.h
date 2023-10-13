@@ -6,9 +6,7 @@
 #define IDT_INTERRUPT_TYPE_FLAG 0x0E
 #define IDT_SEGMENT_SELECTOR 0x08
 
-#define KERNEL_CS   0x8
-
-// Define Interrupts labels 
+// Define Interrupts labels
 #define DIVIDE_ERROR 0
 #define DEBUG_EXC 1
 #define NMI_INTERRUPT 2
@@ -61,24 +59,26 @@ typedef struct {
   uint64_t rflags;
   uint64_t rsp;
   uint64_t ss;
-} __attribute__((__packed__)) cpu_status_t ;
+} __attribute__((__packed__)) cpu_status_t;
 
 typedef struct {
-  uint16_t offset_low;        // offset bits 0..15
-  uint16_t selector;          // a code segment selector in GDT or LDT
-  uint8_t  ist;               // bits 0..2 holds Interrupt Stack Table offset, rest of bits zero.
-  uint8_t  type_attributes;   // gate type, dpl, and p fields
-  uint16_t offset_mid;        // offset bits 16..31
-  uint32_t offset_high;       // offset bits 32..63
-  uint32_t zero;              // reserved
+  uint16_t offset_low; // offset bits 0..15
+  uint16_t selector;   // a code segment selector in GDT or LDT
+  uint8_t
+      ist; // bits 0..2 holds Interrupt Stack Table offset, rest of bits zero.
+  uint8_t type_attributes; // gate type, dpl, and p fields
+  uint16_t offset_mid;     // offset bits 16..31
+  uint32_t offset_high;    // offset bits 32..63
+  uint32_t zero;           // reserved
 } __attribute__((packed)) interrupt_descriptor_t;
 
 typedef struct {
   uint16_t limit;
-  interrupt_descriptor_t* ptr;
+  interrupt_descriptor_t *ptr;
 } __attribute__((packed)) idtd_t;
 
-void idt_init();
+// the kernel's code segment selector
+void idt_init(uint16_t kernel_segment_selector);
 
 // default interrupt service routine
 void default_isr();
