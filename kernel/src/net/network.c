@@ -5,7 +5,8 @@
 bool net_init()
 {
     network_driver *driver = rtl8139_get_driver();
-    if (!driver->probe()) {
+    if (!driver->probe())
+    {
         klog("net", "network driver not present");
         return false;
     }

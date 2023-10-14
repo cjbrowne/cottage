@@ -4,10 +4,11 @@
 #include <stdint.h>
 
 // network driver interface
-typedef struct {
+typedef struct
+{
     // exposed functions
-    void    (*init)();
-    bool    (*probe)();
+    void (*init)();
+    bool (*probe)();
 } network_driver;
 
 bool net_init();

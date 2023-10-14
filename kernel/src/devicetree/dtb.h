@@ -1,3 +1,3 @@
 #pragma once
 
-void dtb_parse(void* dtb);
+void dtb_parse(void *dtb);

@@ -4,4 +4,4 @@
 
 int serial_init();
 void write_serial(char a);
-void print_serial(const char* msg);
+void print_serial(const char *msg);
