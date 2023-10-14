@@ -1,6 +1,6 @@
-#include <interrupt/idt/idt.h>
 #include <acpi/acpi.h>
 #include <devicetree/dtb.h>
+#include <interrupt/idt/idt.h>
 #include <klog/klog.h>
 #include <limine.h>
 #include <mem/kmalloc.h>
@@ -79,9 +79,8 @@ void _start(void) {
 
   TERM_WRITE_BUF("=== WebOS v0.0.1a (snapshot release) ===\n");
 
-  // ensure we got a kernel response
   if (kernel_address_request.response == NULL) {
-    klog("main", "No kernel address"); // warning that we don't know the kernel's address
+    klog("main", "No kernel address");
   }
 
   // kernel address refers to the virtual address

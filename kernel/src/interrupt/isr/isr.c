@@ -2,6 +2,4 @@
 
 void isr_initialize_gates();
 
-void isr_init() {
-  
-}
+void isr_init() {}

@@ -37,6 +37,18 @@ void snputc(char **str, size_t n, char c) {
   }
 }
 
+int snprintf(char* s, size_t max, const char* fmt, ...)
+{
+  va_list arg;
+  int done;
+
+  va_start(arg, fmt);
+  done = vsnprintf(s, max, fmt, arg);
+  va_end(arg);
+
+  return done;
+}
+
 #define MAX_PRINTF 4096
 
 int vsnprintf(char *str, size_t n, const char *fmt, va_list args) {

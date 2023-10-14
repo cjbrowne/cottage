@@ -9,6 +9,7 @@ max_line_length = 120
 charset = utf-8
 indent_style = space
 indent_size = 4
+brace_style = next_line
 # these might not be supported by all editors (are just a suggestion)
 curly_bracket_next_line = true
 spaces_around_operators = true
