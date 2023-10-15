@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <term/term.h>
+#include <mem/pmm.h>
 
 #define LAI_ACPI_MODE_LEGACY_8259 0
 #define LAI_ACPI_MODE_APIC 1
@@ -22,11 +23,11 @@ void acpi_init(acpi_xsdp_t *xsdp_table)
     klog("acpi", "ACPI Revision: %d", xsdp_table->revision);
     if (xsdp_table->revision < 2)
     {
-        rsdt = (acpi_rsdt_t *)((uint64_t)xsdp_table->rsdt);
+        rsdt = (acpi_rsdt_t *)((uint64_t)xsdp_table->rsdt + HIGHER_HALF) ;
     }
     else
     {
-        xsdt = (acpi_xsdt_t *)((uint64_t)xsdp_table->xsdt);
+        xsdt = (acpi_xsdt_t *)((uint64_t)xsdp_table->xsdt + HIGHER_HALF) ;
     }
     klog("acpi", "rsdt=%x xsdt=%x", rsdt, xsdt);
     lai_set_acpi_revision(xsdp_table->revision);
@@ -55,21 +56,21 @@ void *acpi_find_table(char *sig, size_t idx)
 
 void *acpi_find_table_xsdt(char *sig, size_t idx)
 {
-    int entries = (xsdt->header.length - sizeof(acpi_header_t) / 8);
+    int entries = (xsdt->header.length - sizeof(acpi_header_t)) / 8ll;
     klog("acpi", "Searching %d table entries for %s", entries, sig);
     for (int t = 0; t < entries; t++)
     {
-        acpi_header_t *new_header = (void *)(xsdt->tables[t]);
-        char sig[5] = {0};
-        memcpy(sig, new_header->signature, 4);
+        acpi_header_t *new_header = (void *)(xsdt->tables[t] + HIGHER_HALF);
+        char new_sig[5] = {0};
+        memcpy(new_sig, new_header->signature, 4);
 
-        klog("acpi", "Found header with signature %s", sig);
+        klog("acpi", "Found header with signature %s", new_sig);
         if (memcmp(new_header->signature, sig, 4) == 0)
         {
             if (idx == 0)
             {
                 klog("acpi", "Header located at %x", new_header);
-                return new_header;
+                return (void*) new_header;
             }
             idx--;
         }
