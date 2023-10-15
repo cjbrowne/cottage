@@ -9,6 +9,10 @@
 #include <acpi/acpi.h>
 
 #include <io/io.h>
+#include <mem/pagemap.h>
+#include <mem/pmm.h>
+
+extern pagemap_t g_kernel_pagemap;
 
 /* these functions are strongly linked,
     so are 100% needed for the thing to even compile
@@ -120,4 +124,46 @@ uint16_t laihost_inw(uint16_t port)
 uint32_t laihost_ind(uint16_t port)
 {
     return ind(port);
+}
+
+void* laihost_map(size_t address, size_t count)
+{
+    uint64_t virt_addr;
+
+    // todo: there must be a better way of finding a free virtual address than going
+    // through every page and checking one by one...
+    for(size_t i = 0; i < UINT64_MAX; i += PAGE_SIZE)
+    {
+        for(uint64_t j = 0; j < count; j+=PAGE_SIZE)
+        {
+            uint64_t* pte = virt2pte(&g_kernel_pagemap, i + j + HIGHER_HALF, false);
+            if((*pte & PTE_FLAG_PRESENT))
+            {
+                goto _loop_end;
+            }
+        }
+        virt_addr = i + HIGHER_HALF;
+        break;
+        _loop_end:
+        continue;
+    }
+    
+    for(uint64_t i = 0; i < count; i+=PAGE_SIZE)
+    {
+        map_page(&g_kernel_pagemap, 
+                virt_addr + i + HIGHER_HALF, 
+                address + i, 
+                PTE_FLAG_PRESENT | PTE_FLAG_WRITABLE);
+    }
+
+    return (void*) virt_addr;
+}
+
+void laihost_unmap(void* ptr, size_t count)
+{
+    //bool unmap_page(pagemap_t* pagemap, uint64_t virt)
+    uint64_t pages = count / PAGE_SIZE;
+    if(count % PAGE_SIZE != 0) pages++;
+    for(uint64_t i = 0; i < (pages * PAGE_SIZE); i += PAGE_SIZE)
+        unmap_page(&g_kernel_pagemap, (uint64_t)(ptr + i));
 }

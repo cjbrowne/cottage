@@ -4,6 +4,7 @@
 #include <panic.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <mem/pagemap.h>
 
 // this is *always* 256.  Do not change!
 #define IDT_ENTRY_COUNT 256
@@ -65,6 +66,7 @@ cpu_status_t *interrupts_handler(cpu_status_t *status)
     case PAGE_FAULT:
     {
         klog("int", "Page fault %x", status->error_code);
+        klog("int", "Virtual Address %x", read_cr2());
         panic("Page fault");
         break;
     }

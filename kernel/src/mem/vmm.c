@@ -46,6 +46,8 @@ uint64_t* get_next_level(uint64_t* current_level, uint64_t index, bool allocate)
     return ret;
 }
 
+pagemap_t g_kernel_pagemap;
+
 // much of this is ported to C from VINIX OS, with adjustments as necessary
 // for our purposes.
 void vmm_init(uint64_t kernel_base_physical, uint64_t kernel_base_virtual, struct limine_memmap_response* memmap)
@@ -53,15 +55,15 @@ void vmm_init(uint64_t kernel_base_physical, uint64_t kernel_base_virtual, struc
     klog("vmm", "Kernel physical base: %x", kernel_base_physical);
     klog("vmm", "Kernel base virtual: %x", kernel_base_virtual);
 
-    pagemap_t kernel_pagemap = {
+    g_kernel_pagemap = (pagemap_t) {
         .top_level = pmm_alloc(1)
     };
-    if (kernel_pagemap.top_level == 0) {
+    if (g_kernel_pagemap.top_level == 0) {
         panic("vmm_init: allocation failed");
     }
 
     for(uint64_t i = 256; i < 512; i++) {
-        if(get_next_level(kernel_pagemap.top_level, i, true) == 0) {
+        if(get_next_level(g_kernel_pagemap.top_level, i, true) == 0) {
             panic("vmm init failure");
         }
     }
@@ -76,15 +78,15 @@ void vmm_init(uint64_t kernel_base_physical, uint64_t kernel_base_virtual, struc
 
     for(uint64_t i = 0; i < len; i += PAGE_SIZE)
     {
-        if(!map_page(&kernel_pagemap, kernel_base_virtual + i, kernel_base_physical + i, 0x03))
+        if(!map_page(&g_kernel_pagemap, kernel_base_virtual + i, kernel_base_physical + i, 0x03))
             panic("vmm init failed: unable to map kernel page");
     }
     
     for(uint64_t i = 0x1000; i < FOUR_GIGS; i += PAGE_SIZE)
     {
-        if(!map_page(&kernel_pagemap, i, i, 0x03))
+        if(!map_page(&g_kernel_pagemap, i, i, 0x03))
             panic("vmm init failed: unable to map kernel page");
-        if(!map_page(&kernel_pagemap, i + HIGHER_HALF, i, 0x03))
+        if(!map_page(&g_kernel_pagemap, i + HIGHER_HALF, i, 0x03))
             panic("vmm init failed: unable to map kernel page");
     }
 
@@ -99,13 +101,13 @@ void vmm_init(uint64_t kernel_base_physical, uint64_t kernel_base_virtual, struc
         for(uint64_t j = base; j < top; j += PAGE_SIZE)
         {
             if (j < ((uint64_t)FOUR_GIGS)) continue;
-            if (!map_page(&kernel_pagemap, j, j, 0x03))
+            if (!map_page(&g_kernel_pagemap, j, j, 0x03))
                 panic("vmm init failed: unable to map kernel page");
-            if (!map_page(&kernel_pagemap, j + HIGHER_HALF, j, 0x03))
+            if (!map_page(&g_kernel_pagemap, j + HIGHER_HALF, j, 0x03))
                 panic("vmm init failed: unable to map kernel page");
         }
     }
 
-    switch_pagemap(&kernel_pagemap);
+    switch_pagemap(&g_kernel_pagemap);
 
 }
