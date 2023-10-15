@@ -60,7 +60,10 @@ void *acpi_find_table_xsdt(char *sig, size_t idx)
     for (int t = 0; t < entries; t++)
     {
         acpi_header_t *new_header = (void *)(xsdt->tables[t]);
-        klog("acpi", "Found header with signature %s", new_header->signature);
+        char sig[5] = {0};
+        memcpy(sig, new_header->signature, 4);
+
+        klog("acpi", "Found header with signature %s", sig);
         if (memcmp(new_header->signature, sig, 4) == 0)
         {
             if (idx == 0)
