@@ -4,9 +4,28 @@
 
 static inline uint8_t inb(uint16_t port)
 {
-    // taken from wiki.osdev.org
     uint8_t ret;
-    asm volatile("inb %1, %0"
+    asm volatile("in %1, %0"
+                 : "=a"(ret)
+                 : "Nd"(port)
+                 : "memory");
+    return ret;
+}
+
+static inline uint16_t inw(uint16_t port)
+{
+    uint16_t ret;
+    asm volatile("in %1, %0"
+                 : "=a"(ret)
+                 : "Nd"(port)
+                 : "memory");
+    return ret;
+}
+
+static inline uint32_t ind(uint16_t port)
+{
+    uint32_t ret;
+    asm volatile("in %1, %0"
                  : "=a"(ret)
                  : "Nd"(port)
                  : "memory");
@@ -15,8 +34,17 @@ static inline uint8_t inb(uint16_t port)
 
 static inline void outb(uint16_t port, uint8_t data)
 {
-    // taken from wiki.osdev.org
-    asm volatile("outb %0, %1" : : "a"(data), "Nd"(port) : "memory");
+    asm volatile("out %0, %1" : : "a"(data), "Nd"(port) : "memory");
+}
+
+static inline void outw(uint16_t port, uint16_t data)
+{
+    asm volatile("out %0, %1" : : "a"(data), "Nd"(port) : "memory");
+}
+
+static inline void outd(uint16_t port, uint32_t data)
+{
+    asm volatile("out %0, %1" : : "a"(data), "Nd"(port) : "memory");
 }
 
 // also taken from wiki.osdev.org

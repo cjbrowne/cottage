@@ -8,6 +8,8 @@
 #include <panic.h>
 #include <acpi/acpi.h>
 
+#include <io/io.h>
+
 /* these functions are strongly linked,
     so are 100% needed for the thing to even compile
 */
@@ -86,4 +88,36 @@ void *laihost_scan(const char *sig, size_t index)
     {
         return acpi_find_table((char *)sig, index);
     }
+}
+
+/* Write a byte/word/dword to the given I/O port. */
+void laihost_outb(uint16_t port, uint8_t val)
+{
+    outb(port, val);
+}
+
+void laihost_outw(uint16_t port, uint16_t val)
+{
+    outw(port, val);
+}
+
+void laihost_outd(uint16_t port, uint32_t val)
+{
+    outd(port, val);
+}
+
+/* Read a byte/word/dword from the given I/O port. */
+uint8_t laihost_inb(uint16_t port)
+{
+    return inb(port);
+}
+
+uint16_t laihost_inw(uint16_t port)
+{
+    return inw(port);
+}
+
+uint32_t laihost_ind(uint16_t port)
+{
+    return ind(port);
 }
