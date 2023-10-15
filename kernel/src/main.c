@@ -4,6 +4,8 @@
 #include <klog/klog.h>
 #include <limine.h>
 #include <mem/kmalloc.h>
+#include <mem/vmm.h>
+#include <mem/pmm.h>
 #include <net/network.h>
 #include <panic.h>
 #include <serial/serial.h>
@@ -50,13 +52,18 @@ static volatile struct limine_kernel_address_request kernel_address_request = {
     .revision = 0,
 };
 
+static volatile struct limine_memmap_request memmap_request = {
+    .id = LIMINE_MEMMAP_REQUEST,
+    .revision = 0,
+};
+
+void* g_framebuffer;
+
 // The following will be our kernel's entry point.
 // If renaming _start() to something else, make sure to change the
 // linker script accordingly.
 void _start(void)
 {
-
-    uint64_t kernel_address = 0;
 
     // Ensure we got a framebuffer.
     if (framebuffer_request.response == NULL ||
@@ -70,6 +77,8 @@ void _start(void)
     struct limine_framebuffer *framebuffer =
         framebuffer_request.response->framebuffers[0];
 
+    g_framebuffer = framebuffer->address;
+
     print_serial("Initialising tty\r\n");
 
     term_init(framebuffer->address, framebuffer->width, framebuffer->height,
@@ -79,15 +88,15 @@ void _start(void)
 
     have_term = true;
 
+    klog("main", "framebuffer address=%x width=%d height=%d pitch=%d pixel_width=%d", 
+            framebuffer->address, 
+            framebuffer->width, 
+            framebuffer->height, 
+            framebuffer->pitch,
+            (framebuffer->bpp / 8)
+            );
+
     TERM_WRITE_BUF("=== WebOS v0.0.1a (snapshot release) ===\n");
-
-    if (kernel_address_request.response == NULL)
-    {
-        klog("main", "No kernel address");
-    }
-
-    // kernel address refers to the virtual address
-    kernel_address = kernel_address_request.response->physical_base;
 
     klog("main", "Loading DTB");
     // Ensure we got a DTB
@@ -109,9 +118,10 @@ void _start(void)
 
     klog("main", "Paging mode %x enabled", paging_request.response->mode);
 
-    klog("main", "Initializing malloc");
-    size_t kmalloc_size = kmalloc_init();
-    klog("main", "%d bytes ready for allocation", kmalloc_size);
+    if(memmap_request.response == NULL)
+    {
+        panic("Memmap missing.  Cannot determine where to map physical memory to virtual memory");
+    }
 
     klog("main", "Initializing interrupt handlers");
     // the GDT is provided by limine, and places the kernel in
@@ -121,6 +131,22 @@ void _start(void)
     // with ring 0 privileges needed for the IDT (bits 0-1)
     idt_init((5 << 3) | 0x00);
     klog("main", "Interrupt handling enabled");
+
+
+    klog("main", "Initializing PMM");
+    pmm_init(*memmap_request.response);
+    klog("main", "PMM initialized");
+
+    klog("main", "Initializing VMM");
+    if (kernel_address_request.response == NULL)
+    {
+        klog("main", "No kernel address");
+        panic("Can't init VMM");
+    }
+    vmm_init(kernel_address_request.response->physical_base, kernel_address_request.response->virtual_base);
+    klog("main", "VMM initialized");    
+
+    panic("tmp");
 
     have_malloc = true;
     klog("main", "Loading RSDP");

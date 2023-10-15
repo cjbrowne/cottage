@@ -1,5 +1,5 @@
 # Nuke built-in rules and variables.
-override MAKEFLAGS += -rR
+override MAKEFLAGS += -rR -j 8
 
 override IMAGE_NAME := webos
 
