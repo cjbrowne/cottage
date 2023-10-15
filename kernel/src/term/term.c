@@ -5,9 +5,10 @@
 #include "klog/klog.h"
 #include <flanterm/backends/fb.h>
 #include <flanterm/flanterm.h>
-#include <mem/kmalloc.h>
+#include <mem/malloc.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 
 static struct flanterm_context *ctx;
 
@@ -42,8 +43,8 @@ void term_printf(const char *fmt, ...)
     va_list args;
     char *buf = NULL;
     size_t len = vsnprintf(buf, 0, fmt, args);
-    buf = kmalloc(len);
+    buf = malloc(len);
     vsnprintf(buf, len, fmt, args);
     term_write(buf, len);
-    kfree(buf);
+    free(buf);
 }

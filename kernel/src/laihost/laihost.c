@@ -1,6 +1,6 @@
 #include <klog/klog.h>
 #include <string.h>
-#include <mem/kmalloc.h>
+#include <mem/malloc.h>
 
 #include <lai/host.h>
 #include <acpispec/tables.h>
@@ -13,7 +13,7 @@
 */
 void *laihost_malloc(size_t len)
 {
-    return kmalloc(len);
+    return malloc(len);
 }
 
 void *laihost_realloc(void *ptr, size_t newsize, size_t oldsize)
@@ -29,13 +29,13 @@ void *laihost_realloc(void *ptr, size_t newsize, size_t oldsize)
     else
     { // if (newsize > oldsize)
         // allocate a new range that's big enough for the new size
-        void *newptr = kmalloc(newsize);
+        void *newptr = malloc(newsize);
 
         // copy anything that was already present
         memcpy(newptr, ptr, oldsize);
 
         // free the old space
-        kfree(ptr);
+        free(ptr);
 
         return newptr;
     }
@@ -43,7 +43,7 @@ void *laihost_realloc(void *ptr, size_t newsize, size_t oldsize)
 
 void laihost_free(void *ptr, __attribute__((unused)) size_t len)
 {
-    kfree(ptr);
+    free(ptr);
 }
 
 /*

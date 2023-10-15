@@ -6,6 +6,7 @@
 #include <limine.h>
 #include <stdbool.h>
 #include <string.h>
+#include <mem/slaballoc.h>
 
 void bitmap_setbit(size_t index);
 void bitmap_resetbit(size_t index);
@@ -81,8 +82,7 @@ void pmm_init(struct limine_memmap_response* memmap)
     klog("pmm", "First free page is at: %x", first_free_page);
 
     
-    // initialize slabs (todo)
-
+    slaballoc_init();
 }
 
 static size_t last_used_index = 0;

@@ -5,7 +5,7 @@
 
 #include "klog.h"
 #include <math/si.h>
-#include <mem/kmalloc.h>
+#include <mem/malloc.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -49,14 +49,14 @@ void klog(const char *module, const char *fmt, ...)
     {
         // output will simply get truncated if we don't have malloc yet,
         // this allows us to use klog calls earlier in the boot process
-        // while not trying to call an uninitialized kmalloc.
+        // while not trying to call an uninitialized malloc.
         if (have_malloc)
         {
-            char *line_buf = kmalloc(chars_written);
+            char *line_buf = malloc(chars_written);
             vsnprintf(line_buf, chars_written, fmt, args);
             memcpy(klog_buf, line_buf + max_chars, max_chars - chars_written);
             log_end = max_chars - chars_written;
-            kfree(line_buf);
+            free(line_buf);
         }
         else
         {

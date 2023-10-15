@@ -3,7 +3,6 @@
 #include <interrupt/idt/idt.h>
 #include <klog/klog.h>
 #include <limine.h>
-#include <mem/kmalloc.h>
 #include <mem/vmm.h>
 #include <mem/pmm.h>
 #include <net/network.h>
@@ -151,6 +150,7 @@ void _start(void)
     klog("main", "VMM initialized");    
 
     have_malloc = true;
+    
     klog("main", "Loading RSDP");
     if (rsdp_request.response == NULL)
     {

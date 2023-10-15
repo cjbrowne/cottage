@@ -1,7 +1,6 @@
 // kernel headers
 #include <klog/klog.h>
 #include <math/minmax.h>
-#include <mem/kmalloc.h>
 #include <term/term.h>
 
 // c stdlib headers
