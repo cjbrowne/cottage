@@ -12,6 +12,8 @@
 #include <mem/pagemap.h>
 #include <mem/pmm.h>
 
+#include <pci/pci.h>
+
 extern pagemap_t g_kernel_pagemap;
 
 /* these functions are strongly linked,
@@ -166,4 +168,38 @@ void laihost_unmap(void* ptr, size_t count)
     if(count % PAGE_SIZE != 0) pages++;
     for(uint64_t i = 0; i < (pages * PAGE_SIZE); i += PAGE_SIZE)
         unmap_page(&g_kernel_pagemap, (uint64_t)(ptr + i));
+}
+
+/* Write a byte/word/dword to the given device's PCI configuration space
+   at the given offset. */
+void laihost_pci_writeb(__attribute__((unused)) uint16_t seg, uint8_t bus, uint8_t slot, uint8_t fun, uint16_t offset, uint8_t val)
+{
+    pci_writeb(bus, slot, fun, offset, val);
+}
+
+void laihost_pci_writew(__attribute__((unused)) uint16_t seg, uint8_t bus, uint8_t slot, uint8_t fun, uint16_t offset, uint16_t val)
+{
+    pci_writew(bus, slot, fun, offset, val);
+}
+
+void laihost_pci_writed(__attribute__((unused)) uint16_t seg, uint8_t bus, uint8_t slot, uint8_t fun, uint16_t offset, uint32_t val)
+{
+    pci_writed(bus, slot, fun, offset, val);
+}
+
+/* Read a byte/word/dword from the given device's PCI configuration space
+   at the given offset. */
+uint8_t laihost_pci_readb(__attribute__((unused)) uint16_t seg, uint8_t bus, uint8_t slot, uint8_t fun, uint16_t offset)
+{
+    return pci_readb(bus, slot, fun, offset);
+}
+
+uint16_t laihost_pci_readw(__attribute__((unused)) uint16_t seg, uint8_t bus, uint8_t slot, uint8_t fun, uint16_t offset)
+{
+    return pci_readw(bus, slot, fun, offset);
+}
+
+uint32_t laihost_pci_readd(__attribute__((unused)) uint16_t seg, uint8_t bus, uint8_t slot, uint8_t fun, uint16_t offset)
+{
+    return pci_readd(bus, slot, fun, offset);
 }
