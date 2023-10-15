@@ -27,3 +27,14 @@ bool map_page(pagemap_t* pagemap, uint64_t virt_addr, uint64_t phys_addr, uint64
 
     return true;
 }
+
+void switch_pagemap(pagemap_t* pagemap)
+{
+    void* top = pagemap->top_level;
+    asm volatile (
+        "mov %%cr3, %0"
+        : /* no output */ 
+        : "r" (top) 
+        : "memory"
+    );
+}

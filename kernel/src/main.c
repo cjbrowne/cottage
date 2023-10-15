@@ -134,7 +134,7 @@ void _start(void)
 
 
     klog("main", "Initializing PMM");
-    pmm_init(*memmap_request.response);
+    pmm_init(memmap_request.response);
     klog("main", "PMM initialized");
 
     klog("main", "Initializing VMM");
@@ -143,10 +143,12 @@ void _start(void)
         klog("main", "No kernel address");
         panic("Can't init VMM");
     }
-    vmm_init(kernel_address_request.response->physical_base, kernel_address_request.response->virtual_base);
+    vmm_init(
+        kernel_address_request.response->physical_base, 
+        kernel_address_request.response->virtual_base,
+        memmap_request.response
+        );
     klog("main", "VMM initialized");    
-
-    panic("tmp");
 
     have_malloc = true;
     klog("main", "Loading RSDP");

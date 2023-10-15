@@ -17,14 +17,14 @@ static uint64_t pmm_page_count;
 static void* pmm_bitmap;
 static size_t free_pages;
 
-void pmm_init(struct limine_memmap_response memmap)
+void pmm_init(struct limine_memmap_response* memmap)
 {
     uint64_t first_free_page = UINT64_MAX;
     uint64_t highest_address = 0;
-    struct limine_memmap_entry** entries = memmap.entries;
+    struct limine_memmap_entry** entries = memmap->entries;
     klog("pmm", "Found these memory regions:");
     
-    for(size_t i = 0; i < memmap.entry_count; i++)
+    for(size_t i = 0; i < memmap->entry_count; i++)
     {
         klog("pmm", "\tbase=%x length=%d type=%x", entries[i]->base, entries[i]->length, entries[i]->type);
         // skip non-usable, non-reclaimable regions
@@ -43,7 +43,7 @@ void pmm_init(struct limine_memmap_response memmap)
 
     klog("pmm", "Bitmap size: %llu bytes (%llu bits)", bitmap_size, bitmap_size * 8);
 
-    for(size_t i = 0; i < memmap.entry_count; i++)
+    for(size_t i = 0; i < memmap->entry_count; i++)
     {
         if (entries[i]->type != LIMINE_MEMMAP_USABLE) continue;
         if (entries[i]->length >= bitmap_size) 
@@ -63,7 +63,7 @@ void pmm_init(struct limine_memmap_response memmap)
     }
 
     // populate the bitmap with free entries
-    for(size_t i = 0; i < memmap.entry_count; i++) {
+    for(size_t i = 0; i < memmap->entry_count; i++) {
         // skip unusable regions
         if(entries[i]->type != LIMINE_MEMMAP_USABLE) continue;
         
@@ -103,7 +103,6 @@ void* inner_alloc(size_t count, size_t limit)
                 {
                     bitmap_setbit(i);
                 }
-                klog("pmm", "Allocating %d page(s) at %x", count, page * PAGE_SIZE);
                 return (void*) (page * PAGE_SIZE);
             }
         } 

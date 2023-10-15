@@ -9,7 +9,7 @@
 
 #define HIGHER_HALF 0xFFFF800000000000
 
-void pmm_init(struct limine_memmap_response memmap);
+void pmm_init(struct limine_memmap_response* memmap);
 
 // allocates <pages> pages of physical memory
 void* pmm_alloc(size_t pages);

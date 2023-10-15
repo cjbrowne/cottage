@@ -7,10 +7,13 @@
 #include <mem/align.h>
 #include <mem/pagemap.h>
 #include <macro.h>
+#include <limine.h>
 
+
+#define FOUR_GIGS 0x100000000
 
 // Extern symbol defined in linker script
-extern char* KERNEL_END_SYMBOL;
+extern char KERNEL_END_SYMBOL[];
 
 // used to determine kernel size
 uint64_t get_kernel_end_addr(void) {
@@ -20,9 +23,7 @@ uint64_t get_kernel_end_addr(void) {
 uint64_t* get_next_level(uint64_t* current_level, uint64_t index, bool allocate)
 {
     uint64_t* ret = 0;
-
-    uint64_t* entry = (uint64_t*)(current_level + HIGHER_HALF + index * 8);
-
+    uint64_t* entry = (uint64_t*)(((uint64_t)current_level) + HIGHER_HALF + index * 8);
     if ((entry[0] & 0x01) != 0)
     {
         // entry is present in page table
@@ -34,7 +35,6 @@ uint64_t* get_next_level(uint64_t* current_level, uint64_t index, bool allocate)
         {
             return 0;
         }
-        CHECKPOINT
         ret = pmm_alloc(1);
         if (ret == 0)
         {
@@ -43,14 +43,12 @@ uint64_t* get_next_level(uint64_t* current_level, uint64_t index, bool allocate)
         entry[0] = ((uint64_t) ret) | 0b111;
     }
 
-    CHECKPOINT
-
     return ret;
 }
 
 // much of this is ported to C from VINIX OS, with adjustments as necessary
 // for our purposes.
-void vmm_init(uint64_t kernel_base_physical, uint64_t kernel_base_virtual)
+void vmm_init(uint64_t kernel_base_physical, uint64_t kernel_base_virtual, struct limine_memmap_response* memmap)
 {
     klog("vmm", "Kernel physical base: %x", kernel_base_physical);
     klog("vmm", "Kernel base virtual: %x", kernel_base_virtual);
@@ -68,19 +66,46 @@ void vmm_init(uint64_t kernel_base_physical, uint64_t kernel_base_virtual)
         }
     }
 
-    CHECKPOINT
-
     // map kernel
     // get the kernel size from the (page-aligned) end address minus the virtual base address
     uint64_t len = align_up(get_kernel_end_addr(), PAGE_SIZE) - kernel_base_virtual;
+    klog("vmm", "Kernel ends at %x", get_kernel_end_addr());
     
     klog("vmm", "Mapping 0x%x to 0x%x, length: 0x%x", kernel_base_physical, kernel_base_virtual, len);
 
 
     for(uint64_t i = 0; i < len; i += PAGE_SIZE)
     {
-        map_page(&kernel_pagemap, kernel_base_virtual + i, kernel_base_physical + i, 0x03);
+        if(!map_page(&kernel_pagemap, kernel_base_virtual + i, kernel_base_physical + i, 0x03))
+            panic("vmm init failed: unable to map kernel page");
     }
     
-    CHECKPOINT
+    for(uint64_t i = 0x1000; i < FOUR_GIGS; i += PAGE_SIZE)
+    {
+        if(!map_page(&kernel_pagemap, i, i, 0x03))
+            panic("vmm init failed: unable to map kernel page");
+        if(!map_page(&kernel_pagemap, i + HIGHER_HALF, i, 0x03))
+            panic("vmm init failed: unable to map kernel page");
+    }
+
+    struct limine_memmap_entry** entries = memmap->entries;
+
+    for(uint64_t i = 0; i < memmap->entry_count; i++)
+    {
+        uint64_t base = align_down(entries[i]->base, PAGE_SIZE);
+        uint64_t top = align_up(entries[i]->base + entries[i]->length, PAGE_SIZE);
+
+        if (top <= ((uint64_t)FOUR_GIGS)) continue;
+        for(uint64_t j = base; j < top; j += PAGE_SIZE)
+        {
+            if (j < ((uint64_t)FOUR_GIGS)) continue;
+            if (!map_page(&kernel_pagemap, j, j, 0x03))
+                panic("vmm init failed: unable to map kernel page");
+            if (!map_page(&kernel_pagemap, j + HIGHER_HALF, j, 0x03))
+                panic("vmm init failed: unable to map kernel page");
+        }
+    }
+
+    switch_pagemap(&kernel_pagemap);
+
 }

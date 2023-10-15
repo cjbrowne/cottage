@@ -9,3 +9,4 @@ typedef struct {
 } pagemap_t;
 
 bool map_page(pagemap_t* pagemap, uint64_t virt_addr, uint64_t phys_addr, uint64_t flags);
+void switch_pagemap(pagemap_t* pagemap);
