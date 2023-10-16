@@ -21,11 +21,34 @@ void init_timer()
     
     klog("timer", "Found HPET memory region at %x", hpet);
 
-    hexdump(hpet_table, hpet_table->header.length);
-
     // identity map the HPET table into virtual memory
     map_page(&g_kernel_pagemap, (uint64_t)hpet, (uint64_t)hpet, PTE_FLAG_PRESENT | PTE_FLAG_WRITABLE);
 
     // start the timer running, and enable timer interrupts
     hpet->general_config = 1;
+}
+
+void sleep(uint32_t millis)
+{
+    millis /= 8;
+    uint64_t deadline = hpet->counter_value + 
+        // convert millis to ticks (might be better to use get_ticks_per_second?)
+        (millis * 10000000000000)  
+        / 
+        ((hpet->capabilities >> 32) & 0xffffffff)
+        ;
+
+    // wait for deadline to pass
+    while(hpet->counter_value < deadline)
+        asm volatile ("pause" : : : "memory");
+}
+
+uint64_t get_ticks_per_second()
+{
+    return 1250000000000000 / ((hpet->capabilities >> 32) & 0xffffffff);
+}
+
+uint64_t get_ticks()
+{
+    return hpet->counter_value;
 }

@@ -31,3 +31,6 @@ typedef struct {
 } __attribute__((packed)) hpet_t;
 
 void init_timer();
+void sleep(uint32_t millis);
+uint64_t get_ticks_per_second();
+uint64_t get_ticks();

@@ -14,6 +14,8 @@
 
 #include <pci/pci.h>
 
+#include <timer/timer.h>
+
 extern pagemap_t g_kernel_pagemap;
 
 /* these functions are strongly linked,
@@ -205,3 +207,16 @@ uint32_t laihost_pci_readd(__attribute__((unused)) uint16_t seg, uint8_t bus, ui
 }
 
 // TODO: implement laihost_timer / laihost_sleep functions (ugh)
+void laihost_sleep(uint64_t ms)
+{
+    sleep(ms);
+}
+
+uint64_t laihost_timer()
+{
+    uint64_t tps = get_ticks_per_second();
+    uint64_t ticks = get_ticks();
+
+    // reduce resolution of the timer down to 100ns as this is what LAI expects
+    return ticks / (tps * 10000); 
+}
