@@ -1,5 +1,7 @@
 #pragma once
 
+#include <panic.h>
+
 #define STRINGIFY_DETAIL(x) #x
 #define STRINGIFY(x) STRINGIFY_DETAIL(x)
 

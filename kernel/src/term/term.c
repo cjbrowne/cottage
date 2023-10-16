@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <macro.h>
 
 static struct flanterm_context *ctx;
 
@@ -41,10 +42,11 @@ size_t strlen(const char *str)
 void term_printf(const char *fmt, ...)
 {
     va_list args;
-    char *buf = NULL;
-    size_t len = vsnprintf(buf, 0, fmt, args);
-    buf = malloc(len);
-    vsnprintf(buf, len, fmt, args);
-    term_write(buf, len);
+    // just allocate a big-ass buffer, fuck it.
+    char *buf = malloc(512);
+    va_start(args, fmt);
+    vsnprintf(buf, 512, fmt, args);
+    va_end(args);
+    term_write(buf, 512);
     free(buf);
 }

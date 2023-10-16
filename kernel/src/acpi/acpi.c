@@ -8,6 +8,8 @@
 #include <string.h>
 #include <term/term.h>
 #include <mem/pmm.h>
+#include <timer/timer.h>
+#include <debug/debug.h>
 
 #define LAI_ACPI_MODE_LEGACY_8259 0
 #define LAI_ACPI_MODE_APIC 1
@@ -29,9 +31,15 @@ void acpi_init(acpi_xsdp_t *xsdp_table)
     {
         xsdt = (acpi_xsdt_t *)((uint64_t)xsdp_table->xsdt + HIGHER_HALF) ;
     }
+    
+    // this has to be called after ACPI has been detected, but before LAI starts up
+    // we *should* split the ACPI/LAI initialisation and put init_timer in main,
+    // but initialising it from here works for now.
+    init_timer();
+
     klog("acpi", "rsdt=%x xsdt=%x", rsdt, xsdt);
     lai_set_acpi_revision(xsdp_table->revision);
-    lai_create_namespace();
+    lai_create_namespace();    
     klog("acpi", "Enabling ACPI mode in LAI");
     lai_enable_acpi(LAI_ACPI_MODE_APIC);
     klog("acpi", "ACPI mode enabled");
@@ -63,8 +71,7 @@ void *acpi_find_table_xsdt(char *sig, size_t idx)
         acpi_header_t *new_header = (void *)(xsdt->tables[t] + HIGHER_HALF);
         char new_sig[5] = {0};
         memcpy(new_sig, new_header->signature, 4);
-
-        klog("acpi", "Found header with signature %s", new_sig);
+        klog("acpi", "Found header with signature %s, length=%d", new_sig, new_header->length);
         if (memcmp(new_header->signature, sig, 4) == 0)
         {
             if (idx == 0)

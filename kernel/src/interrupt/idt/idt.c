@@ -70,6 +70,11 @@ cpu_status_t *interrupts_handler(cpu_status_t *status)
         panic("Page fault");
         break;
     }
+    case APIC_TIMER_INTERRUPT:
+    {
+        klog("int", "Timer"); // expecting this to be very very spammy
+        break;
+    }
     default:
     {
         char buf[128];
