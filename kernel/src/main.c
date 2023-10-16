@@ -162,11 +162,11 @@ void _start(void)
         acpi_init(rsdp_request.response->address);
     }
 
-    klog("main", "Starting network driver");
+    klog("main", "Loading peripheral drivers");
 
-    net_init();
+    drivers_init();
 
-    klog("main", "Network driver started");
+    klog("main", "All peripheral drivers loaded");
 
     // we're at the point where we would return control to the bootloader,
     // which makes no sense and may cause damage, so we're going to panic
