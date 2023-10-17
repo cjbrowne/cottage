@@ -11,6 +11,11 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <term/term.h>
+#include <pci/pci.h>
+
+// hardware-specific stuff 
+// todo: move this shit behind HAL and/or into modules
+#include <drivers/e1000/e1000.h>
 
 // global var used to check in certain low level functions (e.g panic)
 // whether we have a terminal to write to or not
@@ -162,11 +167,11 @@ void _start(void)
         acpi_init(rsdp_request.response->address);
     }
 
-    klog("main", "Loading peripheral drivers");
+    klog("main", "Enumerating PCI devices");
 
-    // drivers_init();
+    pci_init();
 
-    klog("main", "All peripheral drivers loaded");
+    klog("main", "PCI devices enumerated");
 
     // we're at the point where we would return control to the bootloader,
     // which makes no sense and may cause damage, so we're going to panic
