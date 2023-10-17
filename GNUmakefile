@@ -1,4 +1,5 @@
 # Nuke built-in rules and variables.
+# make sure to change the `-j` flag for your system!
 override MAKEFLAGS += -rR -j 8
 
 override IMAGE_NAME := webos

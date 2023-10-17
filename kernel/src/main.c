@@ -164,7 +164,7 @@ void _start(void)
 
     klog("main", "Loading peripheral drivers");
 
-    drivers_init();
+    // drivers_init();
 
     klog("main", "All peripheral drivers loaded");
 
