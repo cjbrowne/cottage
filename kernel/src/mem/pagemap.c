@@ -3,6 +3,56 @@
 #include <stdbool.h>
 #include <mem/vmm.h>
 #include <mem/pmm.h>
+#include <panic.h>
+
+// tries to find <count> contiguous pages in the virtual memory space
+// if it is unable to, it will return 0
+// if it finds them, it will return the base address of the first page
+uint64_t find_contiguous_pages(pagemap_t* pagemap, size_t count)
+{
+    for(uint64_t i = 0; i < UINT64_MAX; i += PAGE_SIZE)
+    {
+        bool found = true;
+
+        for(uint64_t j = 0; j < count; j++)
+        {
+            uint64_t* pte_p = virt2pte(pagemap, i, false);
+            *pte_p &= ~((uint64_t)0xfff);
+            if (*pte_p & PTE_FLAG_PRESENT)
+            {
+                found = false;
+                break;
+            }
+        }
+
+        if(found)
+            return i;
+    }
+    // if we get this far, we have not been able to find any contiguous regions
+    return 0;
+}
+
+// maps <count> contiguous pages at <virt_addr> to <phys_addr>
+bool map_contiguous_pages(pagemap_t* pagemap, uint64_t virt_addr, uint64_t phys_addr, uint64_t flags, size_t count)
+{
+    bool success = true;
+    for(uint64_t i = 0; i < count; i++)
+    {
+        // if any pages fail to map, stop mapping and return false
+        // note that this means we will end up with a region of memory that is partially mapped
+        // which can never be recovered.  This is a serious bug, and should be dealt with.  
+        if(!map_page(pagemap, virt_addr + i, phys_addr + i, flags))
+        {
+            // because rewinding the partially-mapped region is a complex task
+            // and this bug is unlikely to happen very often, I'm deferring the
+            // job of implementing it for now...
+            panic("Kernel bug: implement rewind of partially mapped regions");
+            success = false;
+            break;
+        }
+    }
+    return success;
+}
 
 bool map_page(pagemap_t* pagemap, uint64_t virt_addr, uint64_t phys_addr, uint64_t flags)
 {

@@ -26,7 +26,10 @@ override DEFAULT_LD := ld
 $(eval $(call DEFAULT_VAR,LD,$(DEFAULT_LD)))
 
 # User controllable C flags.
-override DEFAULT_CFLAGS := -g -O2 -pipe -Werror -Isrc/lai/include
+# -Wno-address-of-packed-member is added because GCC is a bit overzealous about emitting this warning
+# and will emit it even when the structure does have good alignment on the target platform.
+# I don't like turning warnings off, but GCC have kind of forced my hand here...
+override DEFAULT_CFLAGS := -g -O2 -pipe -Werror -Wno-address-of-packed-member -Isrc/lai/include
 $(eval $(call DEFAULT_VAR,CFLAGS,$(DEFAULT_CFLAGS)))
 
 # User controllable C preprocessor flags. We set none by default.

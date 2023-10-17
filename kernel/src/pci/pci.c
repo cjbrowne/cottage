@@ -7,6 +7,8 @@
 #include <stddef.h>
 #include <debug/debug.h>
 #include <drivers/e1000/e1000.h>
+#include <panic.h>
+#include <timer/timer.h>
 
 #define COMMAND_PORT 0xcf8
 #define DATA_PORT 0xcfc
@@ -130,17 +132,96 @@ void enumerate_function(uint64_t address, uint64_t function, __attribute__((unus
     else
         klog("pci", "\tProg interface id  : %x\n", pci_device_header->header.prog_if);
 
-
     // this is hacky, I don't like this
     if (pci_device_header->header.vendor_id == E1000_PCI_VENDOR &&
         pci_device_header->header.device_id == E1000_PCI_DEVICE
     ) {
         klog("pci", "Found E1000 Network Card, initializing driver");
+        bool init = false;
 
-        // todo: call e1000_init()
+        pci_enable_mmio(bus, device, function);
+        // in other OSes, this is done after initialisation of the driver
+        // maybe there's a reason for this?  If you get bugs, check here.
+        pci_become_bus_master(bus, device, function);
 
-        klog("pci", "E1000 Network Card Driver initialized");
+        for(size_t i = 0; i < 6; i++)
+        {
+            pci_bar_t bar = pci_get_bar(&pci_device_header->BAR0, i, bus, device, function);
+            if(bar.type == PCI_BAR_TYPE_MMIO32 || bar.type == PCI_BAR_TYPE_MMIO64)
+            {
+                
+                e1000_init(bar.mem_address);
+                init = true;
+                break;
+            }
+            else if(bar.type == PCI_BAR_TYPE_IO)
+            {
+                // not implementing the I/O version of E1000 for simplicity
+                klog("pci", "Warning: network card I/O mode being ignored");
+                break;
+            }
+        }
+
+        if(init)
+            klog("pci", "E1000 Network Card Driver initialized");
+        else
+            panic("No network card!"); // for now this is the only driver we have
     }
+}
+
+// enables MMIO on this device (by allowing memory space accesses)
+void pci_enable_mmio(uint16_t bus, uint16_t device, uint16_t function)
+{
+    pci_writed(bus, device, function, 0x4, pci_readd(bus, device, function, 0x4) | (1 << 1));
+}
+
+// allows this device to generate PCI accesses
+void pci_become_bus_master(uint16_t bus, uint16_t device, uint16_t function)
+{
+    pci_writed(bus, device, function, 0x4, pci_readd(bus, device, function, 0x4) | (1 << 2));
+}
+
+void read_bar(uint32_t* mask, uint16_t bus, uint16_t device, uint16_t function, uint32_t offset) {
+	uint32_t data = pci_readd(bus, device, function, offset);
+	pci_writed(bus, device, function, offset, 0xffffffff);
+	*mask = pci_readd(bus, device, function, offset);
+	pci_writed(bus, device, function, offset, data);
+}
+
+pci_bar_t pci_get_bar(uint32_t* bar0, int bar_num, uint16_t bus, uint16_t device, uint16_t function)
+{
+    pci_bar_t bar;
+	uint32_t* bar_ptr = (uint32_t*) (bar0 + bar_num * sizeof(uint32_t));
+
+	if (*bar_ptr) {
+		uint32_t mask;
+		read_bar(&mask, bus, device, function, bar_num * sizeof(uint32_t));
+
+		if (*bar_ptr & 0x04) { //64-bit mmio
+			bar.type = PCI_BAR_TYPE_MMIO64;
+
+			uint32_t* bar_ptr_high = (uint32_t*) (bar0 + bar_num * sizeof(uint32_t));
+			uint32_t mask_high;
+			read_bar(&mask_high, bus, device, function, (bar_num * sizeof(uint32_t)) + 0x4);
+
+			bar.mem_address = ((uint64_t) (*bar_ptr_high & ~0xf) << 32) | (*bar_ptr & ~0xf);
+			bar.size = (((uint64_t) mask_high << 32) | (mask & ~0xf)) + 1;
+		} else if (*bar_ptr & 0x01) { //IO
+			bar.type = PCI_BAR_TYPE_IO;
+
+			bar.io_address = (uint16_t)(*bar_ptr & ~0x3);
+			bar.size = (uint16_t)(~(mask & ~0x3) + 1);
+		} else { //32-bit mmio
+			bar.type = PCI_BAR_TYPE_MMIO32;
+
+			bar.mem_address = (uint64_t) *bar_ptr & ~0xf;
+			bar.size = ~(mask & ~0xf) + 1;
+		}
+	} else {
+		bar.type = PCI_BAR_TYPE_NONE;
+	}
+
+	return bar;
 }
 
 void enumerate_device(uint64_t bus_address, uint64_t device, uint16_t bus)

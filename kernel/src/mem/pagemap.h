@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 
 #define PTE_FLAG_PRESENT (uint64_t)(1 << 0)
 #define PTE_FLAG_WRITABLE (uint64_t)(1 << 1)
@@ -12,12 +13,18 @@ typedef struct {
     void** mmap_ranges;
 } pagemap_t;
 
+// couple of helper functions to map multi-page regions
+uint64_t find_contiguous_pages(pagemap_t* pagemap, size_t count);
+bool map_contiguous_pages(pagemap_t* pagemap, uint64_t virt_addr, uint64_t phys_addr, uint64_t flags, size_t count);
+
+// the bulk of the actual page mapping functions
 bool map_page(pagemap_t* pagemap, uint64_t virt_addr, uint64_t phys_addr, uint64_t flags);
 void switch_pagemap(pagemap_t* pagemap);
 uint64_t* virt2pte(pagemap_t* pagemap, uint64_t virt_addr, bool allocate);
 bool unmap_page(pagemap_t* pagemap, uint64_t virt);
 bool flag_page(pagemap_t* pagemap, uint64_t virt, uint64_t flags);
 
+// CR2 is an important pagemap-related register
 static inline uint64_t read_cr2()
 {
     uint64_t ret = 0;
@@ -29,6 +36,7 @@ static inline uint64_t read_cr2()
     return ret;
 }
 
+// CR3 is an important pagemap-related register
 static inline uint64_t read_cr3()
 {
     uint64_t ret = 0;
@@ -40,6 +48,7 @@ static inline uint64_t read_cr3()
     return ret;
 }
 
+// INVLPG is an instruction used to invalidate a page at <virt>
 static inline void invlpg(uint64_t virt)
 {
     asm volatile (
