@@ -1,0 +1,12 @@
+# nightly builds
+on:
+  schedule:
+
+    - cron: "0 2 * * *"
+jobs:
+  build-iso:
+    name: build ISO image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: $GITHUB_WORKSPACE/build.sh
