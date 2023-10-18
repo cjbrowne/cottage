@@ -78,6 +78,12 @@
 #define TSTA_LC							(1 << 2) //Late Collision
 #define LSTA_TU							(1 << 3) //Transmit Underrun
 
+// abstraction layer settings
+// the number of pages to allocate for the in-kernel send buffer,
+// this is not the same as the TX buffer, which is managed by the NIC itself
+#define SEND_BUF_PAGES 32
+#define RECV_BUF_PAGES 32
+
 typedef struct {
     volatile uint64_t addr;
     volatile uint16_t length;

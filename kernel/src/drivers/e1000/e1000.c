@@ -4,6 +4,10 @@
 #include <klog/klog.h>
 #include <panic.h>
 #include <stdbool.h>
+#include <net/network.h>
+#include <string.h>
+
+network_device_t dev;
 
 // RX/TX ring pointers
 uint8_t *rx_ptr;
@@ -160,6 +164,20 @@ void e1000_init(uint64_t _mmio_address)
     klog("e1000", "Activated ethernet card");
     
     set_ip(0);
+
+    // set up the abstract network device 
+    // and register it with the abstraction layer
+    memcpy(&dev, &((network_device_t) {
+        .name = "e1000",
+        .send_buf = pmm_alloc(SEND_BUF_PAGES), 
+        .send_buf_len = 0,
+        .send_buf_max = SEND_BUF_PAGES * PAGE_SIZE,
+        .recv_buf = pmm_alloc(RECV_BUF_PAGES),
+        .recv_buf_len = 0,
+        .recv_buf_max = RECV_BUF_PAGES * PAGE_SIZE,
+        .flags = NET_DEV_STATUS_ENABLE | NET_DEV_STATUS_LINK | NET_DEV_STATUS_LINK_READY
+    }), sizeof(network_device_t));
+    net_register_device("eth0", &dev);
 }
 
 void write_command(uint16_t address, uint32_t value)
