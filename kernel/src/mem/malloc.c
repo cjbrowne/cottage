@@ -3,6 +3,7 @@
 #include <mem/slaballoc.h>
 #include <mem/pmm.h>
 #include <mem/align.h>
+#include <string.h>
 
 void *malloc(size_t len)
 {
@@ -15,6 +16,25 @@ void *malloc(size_t len)
     {
         return slab_alloc(slab);
     }
+}
+
+void* realloc(void* ptr, size_t len)
+{
+    if(ptr == NULL) return malloc(len);
+    if(((uint64_t) ptr) & ((uint64_t) 0xfff) == 0)
+    {
+        return big_realloc(ptr, len);
+    }
+    slabheader_t* slab_hdr = (slabheader_t*)(((uint64_t)ptr) & ~((uint64_t)0xfff));
+    if (len > slab_hdr->slab->ent_size)
+    {
+        void* new_ptr = malloc(len);
+        memcpy(new_ptr, ptr, slab_hdr->slab->ent_size);
+        slab_free(slab_hdr->slab, ptr);
+        return new_ptr;
+    }
+
+    return ptr;
 }
 
 void* big_malloc(size_t len)
