@@ -6,6 +6,24 @@ which serves as the entire shell and frontend for the OS.
 See [TODO](TODO.md) for how much of the vision has been implemented so far, it's
 meant as a rough "roadmap" of what I'm working on.
 
+# Running
+
+To run a downloaded ISO image using qemu, run the following command:
+
+`qemu-system-x86_64 -M q35 -m 2G -bios $(OVMF_IMAGE) -cdrom $(IMAGE_NAME).iso -boot d`
+
+The OVMF image is up to you to provide, but usually can be found at:
+
+`/usr/share/ovmf/OVMF.fd`
+
+If it's not there, make sure you have the `ovmf` package from your distribution
+vendor installed.
+
+Running on Windows is not supported, though you're welcome to give it a go.
+
+If you're brave enough to try it on real hardware, please post your results in
+the "show and tell" discussion forum, or on the discord!
+
 # Design Philosophy
 
 This OS favours simplicity and stability over broad feature support, and will
