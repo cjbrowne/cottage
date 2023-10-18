@@ -9,11 +9,11 @@
 * \[done] Enable HPET
 * \[done] Enable Paging and setup page map
 * \[done] Enable Interrupts, setup some basic handlers
-* \[inprogress] Virtual Filesystem
+* \[todo] Virtual Filesystem
 * \[todo] Load kernel modules (e.g drivers)
-* \[todo] Scheduler
+* \[inprogress] Scheduler
 * \[todo] Load user programs
-* \[todo] Build network stack
+* \[inprogress] Build network stack
 * \[todo] Build web server
 * \[todo] Start building frontend site
 * \[todo] Develop protocol for system calls
