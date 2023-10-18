@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <net/network.h>
 #include <string.h>
+#include <stdlib.h>
 
 network_device_t dev;
 
@@ -177,6 +178,11 @@ void e1000_init(uint64_t _mmio_address)
         .recv_buf_max = RECV_BUF_PAGES * PAGE_SIZE,
         .flags = NET_DEV_STATUS_ENABLE | NET_DEV_STATUS_LINK | NET_DEV_STATUS_LINK_READY
     }), sizeof(network_device_t));
+
+    // recv pointer starts at the start of the recv buffer
+    dev.recv_buf_read_ptr = malloc(sizeof(uint8_t*));
+    *dev.recv_buf_read_ptr = dev.recv_buf;
+
     net_register_device("eth0", &dev);
 }
 

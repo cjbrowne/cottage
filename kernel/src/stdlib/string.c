@@ -1,6 +1,30 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <klog/klog.h>
+#include <string.h>
+
+int strcmp(const char* s1, const char* s2)
+{
+    size_t s1_len = strlen(s1);
+    size_t s2_len = strlen(s2);
+
+    size_t min_len = s1_len < s2_len ? s1_len : s2_len;
+
+    int cmp_result = memcmp(s1, s2, min_len);
+
+    if(cmp_result == 0)
+    {
+        // s1 is a prefix of s2
+        if(s1_len < s2_len) return -1;
+        // s2 is a prefix of s1
+        else if (s1_len > s2_len) return 1;
+        // the lengths are equal, the strings match
+        else return 0;
+    }
+
+    // s1 and s2 do not match
+    return cmp_result;
+}
 
 void *memcpy(void *dest, const void *src, size_t n)
 {
