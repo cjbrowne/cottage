@@ -1,7 +1,10 @@
-# WebOS (working title)
+# Hopper
 
-Web OS is an experimental operating system which features a kernel-space web server,
-which serves as the entire shell and frontend for the OS.
+Hopper is an experimental operating system which features a kernel-space web 
+server.  The goal is to create an OS whose userspace is created primarily using
+JavaScript running in a browser.  This simplifies application development
+dramatically, as application authors get access to everything a browser has to
+offer in terms of UI components.
 
 See [TODO](TODO.md) for how much of the vision has been implemented so far, it's
 meant as a rough "roadmap" of what I'm working on.
