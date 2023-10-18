@@ -2,6 +2,9 @@
 
 #include <stdint.h>
 
+// this is *always* 256.  Do not change!
+#define IDT_ENTRY_COUNT 256
+
 #define IDT_PRESENT_FLAG 0x80
 #define IDT_INTERRUPT_TYPE_FLAG 0x0E
 #define IDT_SEGMENT_SELECTOR 0x08
@@ -87,27 +90,6 @@ void idt_init(uint16_t kernel_segment_selector);
 // default interrupt service routine
 void default_isr();
 
-// forward declare all the asm-implemented ISRs
-extern void interrupt_service_routine_0();
-extern void interrupt_service_routine_1();
-extern void interrupt_service_routine_2();
-extern void interrupt_service_routine_3();
-extern void interrupt_service_routine_4();
-extern void interrupt_service_routine_5();
-extern void interrupt_service_routine_6();
-extern void interrupt_service_routine_7();
-extern void interrupt_service_routine_error_code_8();
-extern void interrupt_service_routine_9();
-extern void interrupt_service_routine_error_code_10();
-extern void interrupt_service_routine_error_code_11();
-extern void interrupt_service_routine_error_code_12();
-extern void interrupt_service_routine_error_code_13();
-extern void interrupt_service_routine_error_code_14();
-extern void interrupt_service_routine_15();
-extern void interrupt_service_routine_16();
-extern void interrupt_service_routine_error_code_17();
-extern void interrupt_service_routine_18();
-extern void interrupt_service_routine_32();
-extern void interrupt_service_routine_33();
-extern void interrupt_service_routine_34();
-extern void interrupt_service_routine_255();
+uint8_t idt_allocate_vector();
+
+extern void* interrupt_table[IDT_ENTRY_COUNT];

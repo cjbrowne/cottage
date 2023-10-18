@@ -6,14 +6,17 @@
 #include <stdio.h>
 #include <mem/pagemap.h>
 
-// this is *always* 256.  Do not change!
-#define IDT_ENTRY_COUNT 256
 
 // the descriptor table
 interrupt_descriptor_t idt[IDT_ENTRY_COUNT];
 
 // the interrupt vector table (used by ISRs to look up which vector to call)
 void* interrupt_table[IDT_ENTRY_COUNT];
+
+// a simple counter that tracks which interrupt vectors have been assigned
+// starts at 32 because the first 31 interrupts are reserved for exceptions,
+// and internal stuff
+uint8_t idt_free_vector = 32;
 
 extern void interrupt_service_routines(void);
 
@@ -61,6 +64,16 @@ static idtd_t idtd = {
 
 void set_idt_entry(uint16_t idx, uint8_t flags, uint16_t selector, uint8_t ist,
                    void (*handler)());
+
+uint8_t idt_allocate_vector()
+{
+    // leave the last 16 vectors free for kernel use
+    if(idt_free_vector == 0xf0)
+    {
+        panic("IDT exhausted");
+    }
+    return idt_free_vector++;
+}
 
 cpu_status_t *interrupts_handler(uint32_t num, cpu_status_t *status)
 {
@@ -137,3 +150,4 @@ void set_idt_entry(uint16_t idx, uint8_t flags, uint16_t selector, uint8_t ist,
     // make sure this is always set to 0
     idt[idx].zero = 0;
 }
+

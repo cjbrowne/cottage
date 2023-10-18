@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <term/term.h>
 #include <pci/pci.h>
+#include <cpu/smp.h>
 
 // hardware-specific stuff 
 // todo: move this shit behind HAL and/or into modules
@@ -58,6 +59,11 @@ static volatile struct limine_kernel_address_request kernel_address_request = {
 
 static volatile struct limine_memmap_request memmap_request = {
     .id = LIMINE_MEMMAP_REQUEST,
+    .revision = 0,
+};
+
+static volatile struct limine_smp_request smp_request = {
+    .id = LIMINE_SMP_REQUEST,
     .revision = 0,
 };
 
@@ -172,6 +178,8 @@ void _start(void)
     pci_init();
 
     klog("main", "PCI devices enumerated");
+
+    smp_init(smp_request.response);
 
     // we're at the point where we would return control to the bootloader,
     // which makes no sense and may cause damage, so we're going to panic
