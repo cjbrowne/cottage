@@ -1,0 +1,172 @@
+#include "gdt.h"
+
+gdt_entry_t gdt_entries[11];
+gdt_pointer_t gdt_pointer;
+
+void gdt_init()
+{
+    // null descriptor
+    gdt_entries[0] = (gdt_entry_t){
+        .limit = 0,
+        .base_low_w = 0,
+        .base_mid_b = 0,
+        .access = 0,
+        .granularity = 0,
+        .base_high_b = 0,
+    };
+
+    // ring 0 16 bit code
+    gdt_entries[1] = (gdt_entry_t){
+        .limit = 0xffff,
+        .base_low_w = 0,
+        .base_mid_b = 0,
+        .access = 
+            GDT_ACCESS_PRESENT 
+            | GDT_ACCESS_RING0 
+            | GDT_ACCESS_DESCRIPTOR_TYPE_CODE_OR_DATA 
+            | GDT_ACCESS_EXECUTABLE
+            | GDT_ACCESS_RW_ENABLE,
+        .granularity = 0,
+        .base_high_b = 0,
+    };
+
+    // ring 0 16 bit data
+    gdt_entries[2] = (gdt_entry_t){
+        .limit = 0xffff,
+        .base_low_w = 0,
+        .base_mid_b = 0,
+        .access = 
+            GDT_ACCESS_PRESENT 
+            | GDT_ACCESS_RING0 
+            | GDT_ACCESS_DESCRIPTOR_TYPE_CODE_OR_DATA 
+            | GDT_ACCESS_RW_ENABLE,
+        .granularity = 0,
+        .base_high_b = 0,
+    };
+
+    // ring 0 32 bit code
+    gdt_entries[3] = (gdt_entry_t){
+        .limit = 0xffff,
+        .base_low_w = 0,
+        .base_mid_b = 0,
+        .access = 
+            GDT_ACCESS_PRESENT 
+            | GDT_ACCESS_RING0 
+            | GDT_ACCESS_EXECUTABLE
+            | GDT_ACCESS_DESCRIPTOR_TYPE_CODE_OR_DATA 
+            | GDT_ACCESS_RW_ENABLE,
+        .granularity = 
+          GDT_GRANULARITY_32BIT 
+        | GDT_GRANULARITY_LIMIT_PAGES
+        | GDT_GRANULARITY_LIMIT_HI,
+        .base_high_b = 0,
+    };
+
+    // ring 0 32 bit data
+    gdt_entries[4] = (gdt_entry_t){
+        .limit = 0xffff,
+        .base_low_w = 0,
+        .base_mid_b = 0,
+        .access = 
+            GDT_ACCESS_PRESENT 
+            | GDT_ACCESS_RING0 
+            | GDT_ACCESS_DESCRIPTOR_TYPE_CODE_OR_DATA 
+            | GDT_ACCESS_RW_ENABLE,
+        .granularity = 
+          GDT_GRANULARITY_32BIT 
+        | GDT_GRANULARITY_LIMIT_PAGES
+        | GDT_GRANULARITY_LIMIT_HI,
+        .base_high_b = 0,
+    };
+    
+    // ring 0 64 bit code
+    gdt_entries[5] = (gdt_entry_t){
+        .limit = 0x0,
+        .base_low_w = 0,
+        .base_mid_b = 0,
+        .access = 
+            GDT_ACCESS_PRESENT 
+            | GDT_ACCESS_RING0 
+            | GDT_ACCESS_EXECUTABLE
+            | GDT_ACCESS_DESCRIPTOR_TYPE_CODE_OR_DATA 
+            | GDT_ACCESS_RW_ENABLE,
+        .granularity = 
+          GDT_GRANULARITY_64BIT_CODE
+        ,
+        .base_high_b = 0,
+    };
+
+    // ring 0 64 bit data
+    gdt_entries[6] = (gdt_entry_t){
+        .limit = 0x0,
+        .base_low_w = 0,
+        .base_mid_b = 0,
+        .access = 
+            GDT_ACCESS_PRESENT 
+            | GDT_ACCESS_RING0 
+            | GDT_ACCESS_DESCRIPTOR_TYPE_CODE_OR_DATA 
+            | GDT_ACCESS_RW_ENABLE,
+        .granularity = 0,
+        .base_high_b = 0,
+    };
+
+    // ring 3 64 bit code
+    gdt_entries[7] = (gdt_entry_t){
+        .limit = 0x0,
+        .base_low_w = 0,
+        .base_mid_b = 0,
+        .access = 
+            GDT_ACCESS_PRESENT 
+            | GDT_ACCESS_RING3 
+            | GDT_ACCESS_EXECUTABLE
+            | GDT_ACCESS_DESCRIPTOR_TYPE_CODE_OR_DATA 
+            | GDT_ACCESS_RW_ENABLE,
+        .granularity = GDT_GRANULARITY_64BIT_CODE,
+        .base_high_b = 0,
+    };
+
+    // ring 3 64 bit data
+    gdt_entries[8] = (gdt_entry_t){
+        .limit = 0x0,
+        .base_low_w = 0,
+        .base_mid_b = 0,
+        .access = 
+            GDT_ACCESS_PRESENT 
+            | GDT_ACCESS_RING3 
+            | GDT_ACCESS_DESCRIPTOR_TYPE_CODE_OR_DATA 
+            | GDT_ACCESS_RW_ENABLE,
+        .granularity = 0,
+        .base_high_b = 0,
+    };
+
+    gdt_reload();
+}
+
+void gdt_reload()
+{
+    gdt_pointer = (gdt_pointer_t) {
+        .size = sizeof(gdt_entry_t) * 13 - 1,
+        .address = &gdt_entries
+    };
+
+    asm volatile (
+        "lgdt %0\n"
+        "pushq %%rax\n"
+        "pushq %1\n"
+        "leaq (0x03)(%%rip),  %%rax\n"
+        "pushq %%rax\n"
+        "lretq\n"
+        "popq %%rax\n"
+        "mov %2, %%ds\n"
+        "mov %2, %%es\n"
+        "mov %2, %%ss\n"
+        "mov %3, %%fs\n"
+        "mov %3, %%gs\n"
+        : :
+        "m" (gdt_pointer),
+        "rm" (KERNEL_CODE_SEGMENT),
+        "rm" (KERNEL_DATA_SEGMENT),
+        "rm" (USER_DATA_SEGMENT)
+        : "memory"
+    );
+}

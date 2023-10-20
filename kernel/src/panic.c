@@ -2,6 +2,7 @@
 #include <term/term.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 // Halt and catch fire function.
 __attribute__((noreturn)) static void hcf(void)
@@ -15,12 +16,15 @@ __attribute__((noreturn)) static void hcf(void)
 
 extern bool have_term;
 
-__attribute__((noreturn)) void panic(const char *msg)
+__attribute__((noreturn)) void panic(const char *msg, ...)
 {
+    va_list args;
     if (have_term)
     {
         term_write("PANIC!\n", 7);
-        term_write(msg, strlen(msg));
+        va_start(args, msg);
+        term_vprintf(msg, args);
+        va_end(args);
     }
 
     hcf();

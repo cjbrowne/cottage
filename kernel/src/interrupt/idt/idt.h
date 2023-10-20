@@ -84,8 +84,10 @@ typedef struct
     interrupt_descriptor_t *ptr;
 } __attribute__((packed)) idtd_t;
 
-// the kernel's code segment selector
-void idt_init(uint16_t kernel_segment_selector);
+void idt_init();
+void idt_reload();
+void set_idt_entry(uint16_t idx, uint8_t flags, uint16_t selector, uint8_t ist,
+                   void (*handler)());
 
 // default interrupt service routine
 void default_isr();

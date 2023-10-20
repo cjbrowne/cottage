@@ -1,6 +1,7 @@
 #include <acpi/acpi.h>
 #include <devicetree/dtb.h>
 #include <interrupt/idt/idt.h>
+#include <interrupt/isr/isr.h>
 #include <klog/klog.h>
 #include <limine.h>
 #include <mem/vmm.h>
@@ -13,6 +14,7 @@
 #include <term/term.h>
 #include <pci/pci.h>
 #include <cpu/smp.h>
+#include <gdt/gdt.h>
 
 // hardware-specific stuff 
 // todo: move this shit behind HAL and/or into modules
@@ -133,14 +135,15 @@ void _start(void)
         panic("Memmap missing.  Cannot determine where to map physical memory to virtual memory");
     }
 
+    klog("main", "Initializing GDT");
+    gdt_init();
+    klog("main", "GDT Initialized");
+
     klog("main", "Initializing interrupt handlers");
-    // the GDT is provided by limine, and places the kernel in
-    // the 64 bit code segment
-    // kernel segment is loaded at index 5 (bits 3-15),
-    // in the GDT (bit 2),
-    // with ring 0 privileges needed for the IDT (bits 0-1)
-    idt_init((5 << 3) | 0x00);
-    klog("main", "Interrupt handling enabled");
+    idt_init();
+    klog("main", "Interrupt table loaded");
+    isr_init();
+    klog("main", "Interrupts enabled");
 
 
     klog("main", "Initializing PMM");

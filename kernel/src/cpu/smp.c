@@ -3,6 +3,8 @@
 #include <klog/klog.h>
 #include <cpu/atomic.h>
 #include <malloc.h>
+#include <gdt/gdt.h>
+#include <interrupt/idt/idt.h>
 
 uint32_t bsp_lapic_id = 0;
 local_cpu_t** local_cpus;
@@ -55,6 +57,6 @@ void cpu_init(struct limine_smp_info* smp_info)
     // uint64_t cpu_number = local_cpu->cpu_number;
     local_cpu->lapic_id = smp_info->lapic_id;
 
-    // gdt_reload();
-    // idt_reload();
+    gdt_reload();
+    idt_reload();
 }

@@ -20,40 +20,6 @@ uint8_t idt_free_vector = 32;
 
 extern void interrupt_service_routines(void);
 
-// names of each type of exception the CPU can produce
-__attribute__((unused)) static const char *exception_names[] = {
-    "Divide by Zero Error",
-    "Debug",
-    "Non Maskable Interrupt",
-    "Breakpoint",
-    "Overflow",
-    "Bound Range",
-    "Invalid Opcode",
-    "Device Not Available",
-    "Double Fault",
-    "Coprocessor Segment Overrun",
-    "Invalid TSS",
-    "Segment Not Present",
-    "Stack-Segment Fault",
-    "General Protection Fault",
-    "Page Fault",
-    "Reserved",
-    "x87 Floating-Point Exception",
-    "Alignment Check",
-    "Machine Check",
-    "SIMD Floating-Point Exception",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Security Exception",
-    "Reserved"};
 
 // the idt descriptor is a pointer to the table,
 // including a length parameter
@@ -62,8 +28,6 @@ static idtd_t idtd = {
     .ptr = idt,
 };
 
-void set_idt_entry(uint16_t idx, uint8_t flags, uint16_t selector, uint8_t ist,
-                   void (*handler)());
 
 uint8_t idt_allocate_vector()
 {
@@ -106,33 +70,23 @@ cpu_status_t *interrupts_handler(uint32_t num, cpu_status_t *status)
     return status;
 }
 
-void idt_init(uint16_t kernel_segment_selector)
+void idt_init()
 {
-    int i = 0;
-    for (i = 0; i < IDT_ENTRY_COUNT; i++)
-    {
-        idt[i].type_attributes = 0;
-        idt[i].ist = 0;
-        idt[i].offset_high = 0;
-        idt[i].offset_mid = 0;
-        idt[i].zero = 0;
-        idt[i].offset_low = 0;
-        idt[i].selector = 0;
-    }
+    idt_reload();
+}
 
-    uint64_t* isrs = (uint64_t*)(interrupt_service_routines);
+void idt_reload()
+{
+    idtd = (idtd_t) {
+        .limit = (sizeof(interrupt_descriptor_t) * IDT_ENTRY_COUNT) - 1,
+        .ptr = idt
+    };
 
-    for (uint16_t i = 0; i < 256; i++)
-    {
-        set_idt_entry(i, IDT_PRESENT_FLAG | IDT_INTERRUPT_TYPE_FLAG, kernel_segment_selector, 0, (void (*)())(isrs[i]));
-        interrupt_table[i] = (void*)interrupts_handler;
-    }
-
-    klog("idt", "Loading IDT descriptor at %x, IDT table is at %x", &idtd,
-         idtd.ptr);
-
-    // load the IDT
-    asm volatile("lidt %0" : : "g"(idtd));
+    asm volatile (
+        "lidt %0"
+        : : "m" (idtd)
+        : "memory"
+    );
 }
 
 void set_idt_entry(uint16_t idx, uint8_t flags, uint16_t selector, uint8_t ist,
