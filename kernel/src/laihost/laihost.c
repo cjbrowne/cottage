@@ -14,7 +14,7 @@
 
 #include <pci/pci.h>
 
-#include <timer/timer.h>
+#include <time/timer.h>
 
 extern pagemap_t g_kernel_pagemap;
 

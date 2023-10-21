@@ -46,3 +46,4 @@ extern gdt_entry_t gdt_entries[11];
 
 void gdt_init();
 void gdt_reload();
+void gdt_load_tss(void* tss);

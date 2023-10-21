@@ -8,7 +8,7 @@
 #include <debug/debug.h>
 #include <drivers/e1000/e1000.h>
 #include <panic.h>
-#include <timer/timer.h>
+#include <time/timer.h>
 
 #define COMMAND_PORT 0xcf8
 #define DATA_PORT 0xcfc

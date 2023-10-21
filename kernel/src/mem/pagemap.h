@@ -24,12 +24,34 @@ uint64_t* virt2pte(pagemap_t* pagemap, uint64_t virt_addr, bool allocate);
 bool unmap_page(pagemap_t* pagemap, uint64_t virt);
 bool flag_page(pagemap_t* pagemap, uint64_t virt, uint64_t flags);
 
+static inline uint64_t read_cr0()
+{
+    uint64_t ret = 0;
+    asm volatile (
+        "mov %%cr0, %0"
+        : "=r" (ret)
+        : : "memory"
+    );
+    return ret;
+}
+
+static inline uint64_t read_cr1()
+{
+    uint64_t ret = 0;
+    asm volatile (
+        "mov %%cr1, %0"
+        : "=r" (ret)
+        : : "memory"
+    );
+    return ret;
+}
+
 // CR2 is an important pagemap-related register
 static inline uint64_t read_cr2()
 {
     uint64_t ret = 0;
     asm volatile (
-        "mov %0, %%cr2"
+        "mov %%cr2, %0"
         : "=r" (ret)
         : : "memory"
     );
@@ -41,11 +63,67 @@ static inline uint64_t read_cr3()
 {
     uint64_t ret = 0;
     asm volatile (
-        "mov %0, %%cr3"
+        "mov %%cr3, %0"
         : "=r" (ret)
         : : "memory"
     );
     return ret;
+}
+
+static inline uint64_t read_cr4()
+{
+    uint64_t ret = 0;
+    asm volatile (
+        "mov %%cr4, %0"
+        : "=r" (ret)
+        : : "memory"
+    );
+    return ret;
+}
+
+static inline void write_cr0(uint64_t val)
+{
+    asm volatile (
+        "mov %0, %%cr0"
+        : : "r" (val)
+        : "memory"
+    );
+}
+
+static inline void write_cr1(uint64_t val)
+{
+    asm volatile (
+        "mov %0, %%cr1"
+        : : "r" (val)
+        : "memory"
+    );
+}
+
+static inline void write_cr2(uint64_t val)
+{
+    asm volatile (
+        "mov %0, %%cr2"
+        : : "r" (val)
+        : "memory"
+    );
+}
+
+static inline void write_cr3(uint64_t val)
+{
+    asm volatile (
+        "mov %0, %%cr3"
+        : : "r" (val)
+        : "memory"
+    );
+}
+
+static inline void write_cr4(uint64_t val)
+{
+    asm volatile (
+        "mov %0, %%cr4"
+        : : "r" (val)
+        : "memory"
+    );
 }
 
 // INVLPG is an instruction used to invalidate a page at <virt>

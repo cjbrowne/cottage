@@ -3,7 +3,7 @@
 #include <interrupt/idt/idt.h>
 #include <klog/klog.h>
 
-static uint8_t scheduler_vector;
+uint8_t scheduler_vector;
 
 void scheduler_isr(uint32_t num, cpu_status_t* status);
 

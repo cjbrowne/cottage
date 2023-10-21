@@ -9,6 +9,7 @@
 #include <macro.h>
 #include <limine.h>
 
+pagemap_t g_kernel_pagemap;
 
 #define FOUR_GIGS 0x100000000
 
@@ -46,7 +47,6 @@ uint64_t* get_next_level(uint64_t* current_level, uint64_t index, bool allocate)
     return ret;
 }
 
-pagemap_t g_kernel_pagemap;
 
 // much of this is ported to C from VINIX OS, with adjustments as necessary
 // for our purposes.

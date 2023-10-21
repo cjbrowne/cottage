@@ -8,7 +8,7 @@
 #include <string.h>
 #include <term/term.h>
 #include <mem/pmm.h>
-#include <timer/timer.h>
+#include <time/timer.h>
 #include <debug/debug.h>
 
 #define LAI_ACPI_MODE_LEGACY_8259 0
