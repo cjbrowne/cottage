@@ -17,6 +17,7 @@
 #include <cpu/smp.h>
 #include <gdt/gdt.h>
 #include <time/pit.h>
+#include <time/timer.h>
 
 // hardware-specific stuff 
 // todo: move this shit behind HAL and/or into modules
@@ -68,6 +69,11 @@ static volatile struct limine_memmap_request memmap_request = {
 
 static volatile struct limine_smp_request smp_request = {
     .id = LIMINE_SMP_REQUEST,
+    .revision = 0,
+};
+
+static volatile struct limine_boot_time_request boottime_request = {
+    .id = LIMINE_BOOT_TIME_REQUEST,
     .revision = 0,
 };
 
@@ -186,6 +192,18 @@ void _start(void)
     klog("main", "Initializing SMP");
     smp_init(smp_request.response);
     klog("main", "SMP initialized");
+
+    klog("main", "Initializing high resolution timer");
+    if(boottime_request.response == NULL)
+    {
+        klog("main", "WARNING! Unknown boot time, using 0 as epoch");
+        timer_init(0);
+    }
+    else
+    {
+        timer_init(boottime_request.response->boot_time);
+    }
+    klog("main", "High-resolution timer initialized");
 
     klog("main", "Initializing scheduler");
     scheduler_init();

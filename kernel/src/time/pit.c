@@ -7,8 +7,6 @@
 #include <time/timer.h>
 #include <klog/klog.h>
 
-#define TIMER_FREQUENCY 1000
-
 void pit_set_frequency(uint64_t freq)
 {
     uint64_t new_divisor = PIT_DIVIDEND / freq;

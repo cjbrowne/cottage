@@ -36,7 +36,7 @@ void acpi_init(acpi_xsdp_t *xsdp_table)
     // this has to be called after ACPI has been detected, but before LAI starts up
     // we *should* split the ACPI/LAI initialisation and put init_timer in main,
     // but initialising it from here works for now.
-    init_timer();
+    hpet_init();
 
     klog("acpi", "rsdt=%x xsdt=%x", rsdt, xsdt);
     lai_set_acpi_revision(xsdp_table->revision);

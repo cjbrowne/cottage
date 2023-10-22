@@ -76,9 +76,7 @@ void lapic_timer_calibrate(local_cpu_t local_cpu)
     while((curcnt = lapic_read(LAPIC_REG_TIMER_CURCNT)) > 0)
     {
         klog("lapic", "Count: %d", curcnt);
-        sleep(100);
     }
-    CHECKPOINT
 
     uint64_t final_pit_tick = (uint64_t) pit_get_current_count();
 

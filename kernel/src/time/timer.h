@@ -2,6 +2,9 @@
 
 #include <acpispec/tables.h>
 #include <stdint.h>
+#include <scheduler/event.h>
+
+#define TIMER_FREQUENCY 1000LL
 
 typedef struct {
     acpi_header_t header;
@@ -30,8 +33,24 @@ typedef struct {
 		uint64_t unused4;
 } __attribute__((packed)) hpet_t;
 
-void init_timer();
+typedef struct {
+    int64_t tv_sec;
+    int64_t tv_nsec;
+} timespec_t;
+
+typedef struct {
+    timespec_t when;
+    event_t event;
+    uint64_t index;
+    bool fired;
+} timer_t;
+
+void timer_init();
+void hpet_init();
 void sleep(uint32_t millis);
 uint64_t get_ticks_per_second();
 uint64_t get_ticks();
 void timer_handler();
+
+extern timespec_t monotonic_clock;
+extern timespec_t realtime_clock;
