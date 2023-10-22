@@ -16,6 +16,7 @@
 #include <pci/pci.h>
 #include <cpu/smp.h>
 #include <gdt/gdt.h>
+#include <time/pit.h>
 
 // hardware-specific stuff 
 // todo: move this shit behind HAL and/or into modules
@@ -166,6 +167,7 @@ void _start(void)
 
     have_malloc = true;
     
+
     klog("main", "Loading RSDP");
     if (rsdp_request.response == NULL)
     {
@@ -177,15 +179,27 @@ void _start(void)
         acpi_init(rsdp_request.response->address);
     }
 
+    klog("main", "Bootstrapping basic timing functions");
+    pit_init();
+    klog("main", "Basic timing functions online");
+
     klog("main", "Enumerating PCI devices");
-
     pci_init();
-
     klog("main", "PCI devices enumerated");
 
+    klog("main", "Initializing SMP");
     smp_init(smp_request.response);
+    klog("main", "SMP initialized");
 
+    klog("main", "Initializing scheduler");
     scheduler_init();
+    klog("main", "Scheduler initialized");
+
+    // todo: create thread and jump into it
+    // kmain_thread();
+
+    klog("main", "Startup complete");
+    scheduler_await();
 
     // we're at the point where we would return control to the bootloader,
     // which makes no sense and may cause damage, so we're going to panic

@@ -196,10 +196,13 @@ void cpu_init(struct limine_smp_info* smp_info)
 
     lapic_timer_calibrate(local_cpu);
 
+    CHECKPOINT
     klog("smp", "CPU %d online!", cpu_number);
 
+    CHECKPOINT
     atomic_fetch_add(&local_cpu->online, 1);
 
+    CHECKPOINT
     if (cpu_number != 0)
     {
         while (atomic_load(&scheduler_vector) == 0);

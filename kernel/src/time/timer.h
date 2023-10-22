@@ -34,3 +34,4 @@ void init_timer();
 void sleep(uint32_t millis);
 uint64_t get_ticks_per_second();
 uint64_t get_ticks();
+void timer_handler();

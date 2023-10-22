@@ -10,6 +10,7 @@
 #include <mem/pmm.h>
 #include <time/timer.h>
 #include <debug/debug.h>
+#include <acpi/madt.h>
 
 #define LAI_ACPI_MODE_LEGACY_8259 0
 #define LAI_ACPI_MODE_APIC 1
@@ -43,6 +44,10 @@ void acpi_init(acpi_xsdp_t *xsdp_table)
     klog("acpi", "Enabling ACPI mode in LAI");
     lai_enable_acpi(LAI_ACPI_MODE_APIC);
     klog("acpi", "ACPI mode enabled");
+
+    klog("acpi", "Initializing MADT");
+    madt_init();
+    klog("acpi", "MADT initialized");
 }
 
 void *acpi_find_table_rsdt(char *sig, size_t idx);
@@ -64,7 +69,7 @@ void *acpi_find_table(char *sig, size_t idx)
 
 void *acpi_find_table_xsdt(char *sig, size_t idx)
 {
-    int entries = (xsdt->header.length - sizeof(acpi_header_t)) / 8ll;
+    int entries = (xsdt->header.length - sizeof(acpi_header_t)) / (uint32_t)8;
     klog("acpi", "Searching %d table entries for %s", entries, sig);
     for (int t = 0; t < entries; t++)
     {

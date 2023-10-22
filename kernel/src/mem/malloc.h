@@ -12,5 +12,7 @@ typedef struct {
 void *malloc(size_t len);
 void* big_malloc(size_t len);
 
+void* realloc(void* ptr, size_t len);
+
 void free(void *ptr);
 void big_free(void *ptr);

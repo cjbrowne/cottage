@@ -52,3 +52,8 @@ uint64_t get_ticks()
 {
     return hpet->counter_value;
 }
+
+void timer_handler()
+{
+    klog("time", "Warning: timer interrupt handler not yet implemented");
+}

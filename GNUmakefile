@@ -19,8 +19,8 @@ endef
 
 OVMF_IMAGE := /usr/share/ovmf/OVMF.fd
 
-ifeq ($(OVMF_USE_NIGHTLY), true)
-	OVMF_IMAGE := ovfm/OVMF.fd
+ifeq ($(OVMF_USE_NIGHTLY),true)
+	OVMF_IMAGE := ovmf/OVMF.fd
 endif
 
 # Toolchain for building the 'limine' executable for the host.
