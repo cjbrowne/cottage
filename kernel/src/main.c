@@ -1,4 +1,5 @@
 #include <acpi/acpi.h>
+#include <scheduler/scheduler.h>
 #include <devicetree/dtb.h>
 #include <interrupt/idt/idt.h>
 #include <interrupt/isr/isr.h>
@@ -183,6 +184,8 @@ void _start(void)
     klog("main", "PCI devices enumerated");
 
     smp_init(smp_request.response);
+
+    scheduler_init();
 
     // we're at the point where we would return control to the bootloader,
     // which makes no sense and may cause damage, so we're going to panic

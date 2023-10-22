@@ -88,6 +88,7 @@ void idt_init();
 void idt_reload();
 void set_idt_entry(uint16_t idx, uint8_t flags, uint16_t selector, uint8_t ist,
                    void (*handler)());
+void set_ist(uint16_t vector, uint8_t ist);
 
 // default interrupt service routine
 void default_isr();

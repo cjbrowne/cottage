@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <macro.h>
@@ -30,7 +31,7 @@ typedef struct {
     task_state_segment_t tss;
     uint32_t lapic_id;
     uint64_t lapic_timer_freq;
-    uint64_t online;
+    _Atomic uint64_t online;
     bool is_idle;
     uint64_t last_run_queue_index;
     uint64_t abort_stack[ABORT_STACK_SIZE];
@@ -39,6 +40,7 @@ typedef struct {
 
 void smp_init(struct limine_smp_response* smp_response);
 void cpu_init(struct limine_smp_info* smp_info);
+local_cpu_t* cpu_get_current();
 
 extern local_cpu_t** local_cpus;
 extern uint32_t bsp_lapic_id;

@@ -1,7 +1,7 @@
 #include "smp.h"
 #include <stddef.h>
 #include <klog/klog.h>
-#include <cpu/atomic.h>
+#include <stdatomic.h>
 #include <malloc.h>
 #include <gdt/gdt.h>
 #include <interrupt/idt/idt.h>
@@ -198,7 +198,7 @@ void cpu_init(struct limine_smp_info* smp_info)
 
     klog("smp", "CPU %d online!", cpu_number);
 
-    atomic_inc(local_cpu->online);
+    atomic_fetch_add(&local_cpu->online, 1);
 
     if (cpu_number != 0)
     {
@@ -206,4 +206,21 @@ void cpu_init(struct limine_smp_info* smp_info)
         scheduler_await();
     }
 
+}
+
+local_cpu_t* cpu_get_current()
+{
+    bool ints = cpu_interrupt_state();
+    if(ints)
+    {
+        klog("smp", "Attempted to get current CPU struct without disabling interrupts");
+        panic("Fetching current CPU without disabling interrupts is dangerous!");
+    }
+
+    uint64_t cpu_number = 0;
+    asm volatile (
+        "movq %%gs:[0], %0"
+        : "=r" (cpu_number)
+    );
+    return local_cpus[cpu_number];
 }

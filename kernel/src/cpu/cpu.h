@@ -59,7 +59,19 @@ static inline bool cpu_id(uint32_t leaf, uint32_t subleaf, uint32_t* a, uint32_t
     return true;
 }
 
+static inline bool cpu_interrupt_state()
+{
+    uint64_t f = 0;
+    asm volatile (
+        "pushfq\n"
+        "pop %0"
+        : "=rm" (f)
+    );
+    return (f & (1 << 9)) != 0;
+}
+
 extern uint64_t fpu_storage_size;
 // function pointers
 extern void* fpu_save;
 extern void* fpu_restore;
+

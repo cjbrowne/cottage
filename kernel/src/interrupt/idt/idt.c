@@ -105,3 +105,7 @@ void set_idt_entry(uint16_t idx, uint8_t flags, uint16_t selector, uint8_t ist,
     idt[idx].zero = 0;
 }
 
+void set_ist(uint16_t vector, uint8_t ist)
+{
+    idt[vector].ist = ist;
+}
