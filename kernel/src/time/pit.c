@@ -48,6 +48,5 @@ void pit_init()
     uint8_t vector = idt_allocate_vector();
     klog("timer", "PIT Vector is 0x%x", vector);
     interrupt_table[vector] = (void*)pit_handler;
-
     io_apic_set_irq_redirect(local_cpus[0]->lapic_id, vector, 0, true);
 }

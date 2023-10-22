@@ -14,6 +14,7 @@
 #include <cpu/cpu.h>
 #include <scheduler/scheduler.h>
 #include <interrupt/apic/apic.h>
+#include <time/pit.h>
 
 uint32_t bsp_lapic_id = 0;
 local_cpu_t** local_cpus;
@@ -193,6 +194,10 @@ void cpu_init(struct limine_smp_info* smp_info)
 
     lapic_enable(0xff);
     asm volatile ( "sti" );
+
+    klog("smp", "Initializing PIT");
+    pit_init();
+    klog("smp", "PIT initialized");
 
     lapic_timer_calibrate(local_cpu);
 

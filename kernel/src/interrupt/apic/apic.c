@@ -1,4 +1,5 @@
 #include "apic.h"
+#include <debug/debug.h>
 #include <klog/klog.h>
 #include <cpu/msr.h>
 #include <mem/pmm.h>
@@ -101,7 +102,7 @@ void lapic_timer_oneshot(local_cpu_t* local_cpu, uint8_t vector, uint64_t micros
 
 uint32_t io_apic_read(uint64_t io_apic, uint32_t reg)
 {
-    uint64_t base = ((uint64_t)madt_io_apics[io_apic]->address) + HIGHER_HALF;
+    uint64_t base = ((uint64_t)madt_io_apics[io_apic].address) + HIGHER_HALF;
     mmout((uint32_t*)base, reg);
     return mmin((uint32_t*) base + 16);
 }
@@ -109,21 +110,32 @@ uint32_t io_apic_read(uint64_t io_apic, uint32_t reg)
 void io_apic_write(uint64_t io_apic, uint32_t reg, uint32_t val)
 {
     klog("ioapic", "Writing %x to register %x in IO APIC %d", val, reg, io_apic);
-    uint64_t base = ((uint64_t)madt_io_apics[io_apic]->address) + HIGHER_HALF;
+    uint64_t base = ((uint64_t)madt_io_apics[io_apic].address) + HIGHER_HALF;
     mmout((uint32_t*) base, reg);
     mmout((uint32_t*)(base + 16), val);
 }
 
 uint32_t io_apic_gsi_count(uint64_t io_apic)
 {
-    return ((io_apic_read(io_apic, 1) & 0xff0000) >> 16);
+    uint32_t x = io_apic_read(io_apic, 1);
+    klog("ioapic", "Read %x from IO APIC reg 1", x);
+    return (x & 0xff0000) >> 16;
 }
 
 uint64_t io_apic_from_gsi(uint32_t gsi)
 {
+    klog("ioapic", "Determining IO APIC index from GSI");
+    klog("ioapic", "Looking through %d IO-APICs", madt_io_apic_count);
     for (size_t i = 0; i < madt_io_apic_count; i++)
     {
-        if (madt_io_apics[i]->gsib <= gsi && madt_io_apics[i]->gsib + io_apic_gsi_count(i) > gsi)
+        klog("ioapic", "gsi=%d madt_io_apics[%d].gsib=%d, io_apic_gsi_count(%d)=%d",
+            gsi,
+            i,
+            madt_io_apics[i].gsib,
+            i,
+            io_apic_gsi_count(i)
+        );
+        if (madt_io_apics[i].gsib <= gsi && madt_io_apics[i].gsib + io_apic_gsi_count(i) > gsi)
         {
             return i;
         }
@@ -154,7 +166,7 @@ void io_apic_set_gsi_redirect(uint32_t lapic_id, uint8_t vector, uint32_t gsi, u
 
     redirect |= ((uint64_t)lapic_id) << 56;
 
-    uint64_t ioredtbl = (gsi - madt_io_apics[io_apic]->gsib) * 2 + 16;
+    uint64_t ioredtbl = (gsi - madt_io_apics[io_apic].gsib) * 2 + 16;
 
     io_apic_write(io_apic, ioredtbl, (uint32_t) redirect);
     io_apic_write(io_apic, ioredtbl + 1, (uint32_t) (redirect >> 32));
@@ -164,13 +176,13 @@ void io_apic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, bo
 {
     for(size_t i = 0; i < madt_iso_count; i++)
     {
-        if (madt_isos[i]->irq_source == irq)
+        if (madt_isos[i].irq_source == irq)
         {
             if (status)
             {
                 klog("apic", "IRQ %d using override");
             }
-            io_apic_set_gsi_redirect(lapic_id, vector, madt_isos[i]->gsi, madt_isos[i]->flags, status);
+            io_apic_set_gsi_redirect(lapic_id, vector, madt_isos[i].gsi, madt_isos[i].flags, status);
             return;
         }
     }

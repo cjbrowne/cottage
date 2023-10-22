@@ -31,6 +31,15 @@ typedef struct {
     uint32_t gsib;
 } __attribute__((packed)) madt_io_apic_t;
 
+/*
+id = 02
+len = 0a
+bus_src = 00
+irq_src = 00
+gsi = 02000000 (00000002 LE)
+flags = 0000
+*/
+
 typedef struct {
     madt_header_t header;
     uint8_t bus_source;
@@ -47,10 +56,10 @@ typedef struct {
 } __attribute__((packed)) madt_nmi_t;
 
 extern madt_t* madt;
-extern madt_local_apic_t** madt_local_apics;
-extern madt_io_apic_t** madt_io_apics;
-extern madt_iso_t** madt_isos;
-extern madt_nmi_t** madt_nmis;
+extern madt_local_apic_t* madt_local_apics;
+extern madt_io_apic_t* madt_io_apics;
+extern madt_iso_t* madt_isos;
+extern madt_nmi_t* madt_nmis;
 extern size_t madt_local_apic_count;
 extern size_t madt_io_apic_count;
 extern size_t madt_iso_count;
