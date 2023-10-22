@@ -19,14 +19,14 @@ size_t madt_nmi_count = 0;
 
 void madt_init()
 {
-    madt = (madt_t*) acpi_find_table("MADT", 0);
+    // the MADT is inexplicably called APIC.  This cost me 3 hours to discover.
+    madt = (madt_t*) acpi_find_table("APIC", 0);
     if(madt == NULL) 
     {
         panic("System does not have an MADT!");
     }
 
     klog("acpi/madt", "MADT is %d bytes long", madt->header.length);
-    CHECKPOINT
 
     uint64_t cur = 0;
     while(cur + (sizeof(madt_t) - 1) >= madt->header.length)
