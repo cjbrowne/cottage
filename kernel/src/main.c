@@ -79,6 +79,8 @@ static volatile struct limine_boot_time_request boottime_request = {
 
 void* g_framebuffer;
 
+void kmain_thread();
+
 // The following will be our kernel's entry point.
 // If renaming _start() to something else, make sure to change the
 // linker script accordingly.
@@ -210,6 +212,7 @@ void _start(void)
     klog("main", "Scheduler initialized");
 
     // todo: create thread and jump into it
+    new_kernel_thread((void*)kmain_thread, NULL, true);
     // kmain_thread();
 
     klog("main", "Startup complete");
@@ -219,4 +222,9 @@ void _start(void)
     // which makes no sense and may cause damage, so we're going to panic
     // instead.  Make sure there's an infinite loop somewhere above this line!
     panic("kernel returned");
+}
+
+void kmain_thread()
+{
+    panic("Implement kmain_thread");
 }

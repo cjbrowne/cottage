@@ -56,6 +56,12 @@ void lapic_timer_stop()
     lapic_write(LAPIC_REG_TIMER, (1 << 16));
 }
 
+void lapic_send_ipi(uint8_t lapic_id, uint8_t vector)
+{
+    lapic_write(LAPIC_REG_ICR1, (uint32_t)lapic_id << 24);
+    lapic_write(LAPIC_REG_ICR0, vector);
+}
+
 void lapic_timer_calibrate(local_cpu_t local_cpu)
 {
     klog("lapic", "Calibrating lapic timer for CPU %d", local_cpu.cpu_number);

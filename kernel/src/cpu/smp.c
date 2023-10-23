@@ -18,6 +18,7 @@
 
 uint32_t bsp_lapic_id = 0;
 local_cpu_t** local_cpus;
+uint64_t cpu_count = 0;
 
 void smp_init(struct limine_smp_response* smp_response)
 {
@@ -33,6 +34,7 @@ void smp_init(struct limine_smp_response* smp_response)
     bsp_lapic_id = smp_response->bsp_lapic_id;
 
     local_cpus = (local_cpu_t**) malloc(sizeof(local_cpu_t*) * smp_response->cpu_count);
+    cpu_count = smp_response->cpu_count;
 
     for (uint64_t i = 0; i < smp_response->cpu_count; i++)
     {

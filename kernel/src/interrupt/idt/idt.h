@@ -37,6 +37,7 @@
 #define KEYBOARD_INTERRUPT 33
 #define PIT_INTERRUPT 34
 
+//todo: move this to a separate file?
 typedef struct
 {
     uint64_t ds;
