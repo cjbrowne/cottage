@@ -49,6 +49,7 @@ void scheduler_await()
     local_cpu_t* local_cpu = cpu_get_current();    
     // wait for 20ms
     lapic_timer_oneshot(local_cpu, scheduler_vector, 20000);
+    CHECKPOINT
     // enable interrupts and run a HLT loop until the interrupt fires
     asm volatile (
         "sti\n"

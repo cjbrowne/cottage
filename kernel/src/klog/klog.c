@@ -5,6 +5,7 @@
 
 #include "klog.h"
 #include <math/si.h>
+#include <lock/lock.h>
 #include <mem/malloc.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -24,10 +25,15 @@ static size_t log_end = 0;
 extern bool have_term;
 extern bool have_malloc;
 
+lock_t klog_lock = {
+    .is_locked = false
+};
+
 void klog_putc(char c);
 
 void klog(const char *module, const char *fmt, ...)
 {
+    lock_acquire(&klog_lock);
     va_list args;
     va_start(args, fmt);
     size_t log_end_start = log_end;
@@ -94,6 +100,7 @@ void klog(const char *module, const char *fmt, ...)
         }
     }
     va_end(args);
+    lock_release(&klog_lock);
 }
 
 void klog_putc(char c)

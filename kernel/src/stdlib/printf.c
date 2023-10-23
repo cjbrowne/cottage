@@ -4,6 +4,7 @@
 #include <term/term.h>
 
 // c stdlib headers
+#include <lock/lock.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -22,6 +23,8 @@
 #define PRINTF_LENGTH_SHORT 2
 #define PRINTF_LENGTH_LONG 3
 #define PRINTF_LENGTH_LONG_LONG 4
+
+static lock_t printf_lock;
 
 // forward declaration of "local" functions
 int vsnprintf_unsigned(char **str, size_t n, unsigned long long number,
@@ -54,6 +57,7 @@ int snprintf(char *s, size_t max, const char *fmt, ...)
 
 int vsnprintf(char *str, size_t n, const char *fmt, va_list args)
 {
+    lock_acquire(&printf_lock);
     int state = PRINTF_STATE_NORMAL;
     int length = PRINTF_LENGTH_DEFAULT;
     int radix = 10;
@@ -230,6 +234,7 @@ int vsnprintf(char *str, size_t n, const char *fmt, va_list args)
     // add a nul byte at the end as per the spec
     // but exclude it from the count of bytes written
     snputc(&str, n, '\0');
+    lock_release(&printf_lock);
     // n is 0 if number of bytes written == orig_size
     // n is <0 if number of bytes written > orig_size
     // n is >0 if number of bytes written < orig_size

@@ -2,7 +2,7 @@
 // future, maybe more? (unlikely though)
 
 #include "term.h"
-#include "klog/klog.h"
+#include <lock/lock.h>
 #include <flanterm/backends/fb.h>
 #include <flanterm/flanterm.h>
 #include <mem/malloc.h>
@@ -12,6 +12,8 @@
 #include <macro.h>
 
 static struct flanterm_context *ctx;
+
+static lock_t term_lock;
 
 void term_putc(const char c);
 
@@ -23,7 +25,10 @@ void term_init(uint32_t *framebuffer, size_t width, size_t height,
 
 void term_write(const char *string, size_t count)
 {
+    // term writes must be locked since async writes will corrupt the framebuffer
+    lock_acquire(&term_lock);
     flanterm_write(ctx, string, count);
+    lock_release(&term_lock);
 }
 
 void term_putc(const char c) { term_write(&c, 1); }

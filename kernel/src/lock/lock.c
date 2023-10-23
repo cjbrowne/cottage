@@ -39,8 +39,8 @@ bool lock_test_and_acquire(lock_t* lock)
 {
     uint64_t caller = (uint64_t) __builtin_return_address(0);
     
-    bool expected = true;
-    bool new_value = false;
+    bool expected = false;
+    bool new_value = true;
     
     atomic_compare_exchange_strong(&lock->is_locked, &expected, new_value);
     if (lock->is_locked)
