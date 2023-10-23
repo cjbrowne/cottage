@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <mem/slaballoc.h>
+#include <lock/lock.h>
 
 void bitmap_setbit(size_t index);
 void bitmap_resetbit(size_t index);
@@ -17,6 +18,9 @@ bool bitmap_testbit(size_t index);
 static uint64_t pmm_page_count;
 static void* pmm_bitmap;
 static size_t free_pages;
+
+// mutex for syncing alloc/free calls
+static lock_t pmm_lock;
 
 void pmm_init(struct limine_memmap_response* memmap)
 {
@@ -117,6 +121,7 @@ void* inner_alloc(size_t count, size_t limit)
 
 void* pmm_alloc(size_t count)
 {
+    lock_acquire(&pmm_lock);
     size_t last = last_used_index;
 
     void* ret = inner_alloc(count, pmm_page_count);
@@ -137,17 +142,21 @@ void* pmm_alloc(size_t count)
     void* ptr = ret + HIGHER_HALF;
     memset(ptr, 0, count * PAGE_SIZE);
 
+    lock_release(&pmm_lock);
+
     return ret;
 }
 
 void pmm_free(void* ptr, size_t count)
 {
+    lock_acquire(&pmm_lock);
     size_t page = (uint64_t)ptr / PAGE_SIZE;
-    for(size_t i = 0; i < page + count; i++)
+    for(size_t i = page; i < page + count; i++)
     {
         bitmap_resetbit(i);
     }
     free_pages += count;
+    lock_release(&pmm_lock);
 }
 
 // this is a little bit magic, ported from VINIX, and tests a single bit

@@ -1,6 +1,7 @@
 #include "isr.h"
 #include <stdint.h>
 #include <interrupt/idt/idt.h>
+#include <interrupt/apic/apic.h>
 #include <gdt/gdt.h>
 #include <klog/klog.h>
 #include <panic.h>
@@ -51,7 +52,11 @@ void handle_pagefault(__attribute__((unused)) uint32_t num, __attribute__((unuse
 
 void handle_abort(__attribute__((unused)) uint32_t num, __attribute__((unused)) cpu_status_t* cpu_state)
 {
-    panic("Kernel caught ABORT interrupt");
+    atomic_store(&cpu_get_current()->aborted, true);
+    for(;;)
+    {
+        asm volatile("hlt");
+    }
 }
 
 void handle_exception(uint32_t num, __attribute__((unused)) cpu_status_t* cpu_state)
@@ -69,6 +74,7 @@ void handle_exception(uint32_t num, __attribute__((unused)) cpu_status_t* cpu_st
 
 void handle_interrupt(uint32_t num, __attribute__((unused)) cpu_status_t* cpu_state)
 {
+    lapic_eoi();
     panic("Caught interrupt %d, not handled yet", num);
 }
 

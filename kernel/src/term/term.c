@@ -46,17 +46,19 @@ size_t strlen(const char *str)
 
 void term_vprintf(const char* fmt, va_list args)
 {
-    // just allocate a big-ass buffer, fuck it.
-    char *buf = malloc(512);
-    vsnprintf(buf, 512, fmt, args);
-    term_write(buf, 512);
-    free(buf);
+    lock_acquire(&term_lock);
+    char buf[256] = {0};
+    vsnprintf(buf, 256, fmt, args);
+    term_write(buf, 256);
+    lock_release(&term_lock);
 }
 
 void term_printf(const char *fmt, ...)
 {
+    lock_acquire(&term_lock);
     va_list args;
     va_start(args, fmt);
     term_vprintf(fmt, args);
     va_end(args);
+    lock_release(&term_lock);
 }

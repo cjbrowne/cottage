@@ -211,9 +211,7 @@ void _start(void)
     scheduler_init();
     klog("main", "Scheduler initialized");
 
-    // todo: create thread and jump into it
     new_kernel_thread((void*)kmain_thread, NULL, true);
-    // kmain_thread();
 
     klog("main", "Startup complete");
     scheduler_await();

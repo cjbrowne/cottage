@@ -4,20 +4,29 @@
 #include <mem/pmm.h>
 #include <mem/align.h>
 #include <string.h>
+#include <macro.h>
+
+// toggle this off in some functions, to provide some safety against malloc
+// loops (e.g from printf)
+extern bool have_malloc;
 
 void* big_realloc(void* ptr, size_t len);
 
 void *malloc(size_t len)
 {
+    void* ret = NULL;
+    have_malloc = false;
     slab_t* slab = find_slab(8 + len);
     if(slab == NULL)
     {
-        return big_malloc(len);
+        ret = big_malloc(len);
     }
     else
     {
-        return slab_alloc(slab);
+        ret = slab_alloc(slab);
     }
+    have_malloc = true;
+    return ret;
 }
 
 void* realloc(void* ptr, size_t len)

@@ -1,10 +1,12 @@
 #include "slaballoc.h"
+#include <lock/lock.h>
 #include <stdint.h>
 #include <mem/pmm.h>
 #include <mem/align.h>
 #include <string.h>
 
 slab_t slabs[SLAB_COUNT];
+static lock_t slab_lock;
 
 void slaballoc_init()
 {
@@ -58,6 +60,7 @@ slab_t* find_slab(uint64_t size)
 
 void* slab_alloc(slab_t* slab)
 {
+    lock_acquire(&slab_lock);
     if(slab->first_free == 0)
     {
         init_slab(slab, slab->ent_size);
@@ -66,16 +69,21 @@ void* slab_alloc(slab_t* slab)
     uint64_t* old_free = (uint64_t*) slab->first_free;
     slab->first_free = *old_free;
     memset((void*)old_free, 0, slab->ent_size);
-    
+    lock_release(&slab_lock); 
     return old_free;
 }
 
 void slab_free(slab_t* slab, void* ptr)
 {
-    if(ptr == NULL) return;
+    lock_acquire(&slab_lock);
+    if(ptr == NULL) {
+        lock_release(&slab_lock);
+        return;
+    }
 
     uint64_t* new_head = (uint64_t*) ptr;
     new_head[0] = slab->first_free;
 
     slab->first_free = (uint64_t) new_head;
+    lock_release(&slab_lock);
 }

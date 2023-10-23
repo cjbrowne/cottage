@@ -35,7 +35,7 @@ typedef struct {
     _Atomic bool is_idle;
     uint64_t last_run_queue_index;
     uint64_t abort_stack[ABORT_STACK_SIZE];
-    bool aborted;
+    _Atomic bool aborted;
 } local_cpu_t;
 
 void smp_init(struct limine_smp_response* smp_response);

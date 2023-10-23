@@ -42,8 +42,7 @@ bool lock_test_and_acquire(lock_t* lock)
     bool expected = false;
     bool new_value = true;
     
-    atomic_compare_exchange_strong(&lock->is_locked, &expected, new_value);
-    if (lock->is_locked)
+    if(atomic_compare_exchange_strong(&lock->is_locked, &expected, new_value))
     {
         lock->caller = caller;
     }

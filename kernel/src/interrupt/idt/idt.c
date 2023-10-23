@@ -1,10 +1,12 @@
 #include "idt.h"
 #include <interrupt/isr/isr.h>
+#include <macro.h>
 #include <klog/klog.h>
 #include <panic.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <mem/pagemap.h>
+#include <lock/lock.h>
 
 
 // the descriptor table
@@ -14,9 +16,9 @@ interrupt_descriptor_t idt[IDT_ENTRY_COUNT];
 void* interrupt_table[IDT_ENTRY_COUNT];
 
 // a simple counter that tracks which interrupt vectors have been assigned
-// starts at 32 because the first 31 interrupts are reserved for exceptions,
+// starts at 32 because the first 32 interrupts are reserved for exceptions,
 // and internal stuff
-uint8_t idt_free_vector = 32;
+static uint8_t idt_free_vector = 32;
 
 extern void interrupt_service_routines(void);
 
@@ -29,14 +31,24 @@ static idtd_t idtd = {
 };
 
 
+static lock_t idt_lock;
+
+
 uint8_t idt_allocate_vector()
 {
+    lock_acquire(&idt_lock);
+    klog("idt", "Allocating vector %x=%d", &idt_free_vector, idt_free_vector);
     // leave the last 16 vectors free for kernel use
     if(idt_free_vector == 0xf0)
     {
+        lock_release(&idt_lock);
         panic("IDT exhausted");
+        // technically impossible
+        return 0;
     }
-    return idt_free_vector++;
+    uint8_t ret = idt_free_vector++;
+    lock_release(&idt_lock);
+    return ret;
 }
 
 cpu_status_t *interrupts_handler(uint32_t num, cpu_status_t *status)
@@ -97,7 +109,7 @@ void set_idt_entry(uint16_t idx, uint8_t flags, uint16_t selector, uint8_t ist,
     idt[idx].selector = selector;
     // convert a 64 bit address into three offset values for the fucky way the IDT
     // works
-    idt[idx].offset_low = (uint16_t)((uint64_t)handler & 0xFFFF);
+    idt[idx].offset_low = (uint16_t)((uint64_t)handler);
     idt[idx].offset_mid = (uint16_t)((uint64_t)handler >> 16);
     idt[idx].offset_high = (uint32_t)((uint64_t)handler >> 32);
 

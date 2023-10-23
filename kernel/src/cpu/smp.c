@@ -205,10 +205,9 @@ void cpu_init(struct limine_smp_info* smp_info)
 
     if (cpu_number != 0)
     {
-        while (atomic_load(&scheduler_vector) == 0);
+        while (atomic_load(&scheduler_ready) == false);
         scheduler_await();
     }
-
 }
 
 local_cpu_t* cpu_get_current()

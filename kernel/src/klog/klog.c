@@ -14,7 +14,7 @@
 #include <string.h>
 #include <term/term.h>
 
-// keep 128K of logs in the ringbuffer at a time
+// 128K ring buffer - tune as needed
 #define KLOG_BUFSIZE KiB(128)
 
 static char klog_buf[KLOG_BUFSIZE];

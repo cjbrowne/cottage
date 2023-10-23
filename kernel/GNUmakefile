@@ -72,6 +72,7 @@ override CPPFLAGS := \
 # Internal linker flags that should not be changed by the user.
 override LDFLAGS += \
     -m elf_x86_64 \
+    -Map bin/kernel.map \
     -nostdlib \
     -static \
     -pie \
