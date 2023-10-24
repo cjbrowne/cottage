@@ -1,7 +1,7 @@
 // currently only support the flanterm backend
 // future, maybe more? (unlikely though)
 
-#include "term.h"
+#include <term/term.h>
 #include <lock/lock.h>
 #include <flanterm/backends/fb.h>
 #include <flanterm/flanterm.h>

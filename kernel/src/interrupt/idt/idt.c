@@ -1,5 +1,5 @@
-#include "idt.h"
-#include <interrupt/isr/isr.h>
+#include <interrupt/idt.h> 
+#include <interrupt/isr.h>
 #include <macro.h>
 #include <klog/klog.h>
 #include <panic.h>

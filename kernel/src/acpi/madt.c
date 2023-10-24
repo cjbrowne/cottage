@@ -1,4 +1,4 @@
-#include "madt.h"
+#include <acpi/madt.h>
 
 #include <stddef.h>
 #include <stdbool.h>

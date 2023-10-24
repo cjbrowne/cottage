@@ -1,4 +1,4 @@
-#include "network.h"
+#include <net/network.h>
 #include <klog/klog.h>
 #include <stdbool.h>
 #include <malloc.h>

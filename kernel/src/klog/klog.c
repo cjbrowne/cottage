@@ -3,7 +3,7 @@
  * really only meant for internal kernel use.
  */
 
-#include "klog.h"
+#include <klog/klog.h>
 #include <math/si.h>
 #include <lock/lock.h>
 #include <mem/malloc.h>

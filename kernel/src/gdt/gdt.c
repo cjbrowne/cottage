@@ -1,4 +1,4 @@
-#include "gdt.h"
+#include <gdt/gdt.h>
 
 gdt_entry_t gdt_entries[11];
 gdt_pointer_t gdt_pointer;

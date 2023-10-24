@@ -1,4 +1,4 @@
-#include "debug.h"
+#include <debug/debug.h>
 #include <term/term.h>
 #include <klog/klog.h>
 

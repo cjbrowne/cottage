@@ -1,4 +1,4 @@
-#include "slaballoc.h"
+#include <mem/slaballoc.h>
 #include <lock/lock.h>
 #include <stdint.h>
 #include <mem/pmm.h>

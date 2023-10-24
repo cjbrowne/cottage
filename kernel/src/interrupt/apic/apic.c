@@ -1,4 +1,4 @@
-#include "apic.h"
+#include <interrupt/apic.h>
 #include <debug/debug.h>
 #include <klog/klog.h>
 #include <cpu/msr.h>

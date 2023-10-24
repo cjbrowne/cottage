@@ -1,4 +1,4 @@
-#include "acpi.h"
+#include <acpi/acpi.h>
 #include <acpispec/tables.h>
 #include <klog/klog.h>
 #include <lai/helpers/sci.h>

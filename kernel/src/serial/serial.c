@@ -2,7 +2,7 @@
 // Created by chris on 03/10/23.
 //
 
-#include "serial.h"
+#include <serial/serial.h>
 #include <io/io.h>
 
 int serial_init()

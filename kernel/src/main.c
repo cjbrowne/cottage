@@ -1,8 +1,8 @@
 #include <acpi/acpi.h>
 #include <scheduler/scheduler.h>
 #include <devicetree/dtb.h>
-#include <interrupt/idt/idt.h>
-#include <interrupt/isr/isr.h>
+#include <interrupt/idt.h>
+#include <interrupt/isr.h>
 #include <klog/klog.h>
 #include <limine.h>
 #include <mem/vmm.h>

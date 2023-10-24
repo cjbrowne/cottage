@@ -1,7 +1,7 @@
-#include "isr.h"
+#include <interrupt/isr.h>
 #include <stdint.h>
-#include <interrupt/idt/idt.h>
-#include <interrupt/apic/apic.h>
+#include <interrupt/idt.h>
+#include <interrupt/apic.h>
 #include <gdt/gdt.h>
 #include <klog/klog.h>
 #include <panic.h>

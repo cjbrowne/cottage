@@ -1,6 +1,6 @@
-#include "scheduler.h"
+#include <scheduler/scheduler.h>
 #include <stdint.h>
-#include <interrupt/idt/idt.h>
+#include <interrupt/idt.h>
 #include <klog/klog.h>
 #include <mem/malloc.h>
 #include <mem/vmm.h>
@@ -9,7 +9,7 @@
 #include <cpu/cpu.h>
 #include <mem/align.h>
 #include <gdt/gdt.h>
-#include <interrupt/apic/apic.h>
+#include <interrupt/apic.h>
 #include <string.h>
 
 // use 2MB stack, similar to Linux

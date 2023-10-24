@@ -1,4 +1,4 @@
-#include "e1000.h"
+#include <drivers/e1000/e1000.h>
 #include <acpi/acpi.h>
 #include <mem/pmm.h>
 #include <klog/klog.h>

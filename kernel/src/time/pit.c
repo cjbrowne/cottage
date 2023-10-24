@@ -1,8 +1,8 @@
-#include "pit.h"
+#include <time/pit.h>
 #include <io/io.h>
-#include <interrupt/apic/apic.h>
-#include <interrupt/idt/idt.h>
-#include <interrupt/isr/isr.h>
+#include <interrupt/apic.h>
+#include <interrupt/idt.h>
+#include <interrupt/isr.h>
 #include <cpu/smp.h>
 #include <time/timer.h>
 #include <klog/klog.h>

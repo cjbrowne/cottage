@@ -1,4 +1,4 @@
-#include "pci.h"
+#include <pci/pci.h>
 #include <stdint.h>
 #include <io/io.h>
 #include <mem/pagemap.h>

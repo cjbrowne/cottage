@@ -1,4 +1,4 @@
-#include "dtb.h"
+#include <devicetree/dtb.h>
 
 // all of this shit is unused tbh - candidate for removal maybe?
 // we do want to support ARM eventually, but maybe we can just do that when

@@ -1,10 +1,10 @@
-#include "smp.h"
+#include <cpu/smp.h>
 #include <stddef.h>
 #include <klog/klog.h>
 #include <stdatomic.h>
 #include <malloc.h>
 #include <gdt/gdt.h>
-#include <interrupt/idt/idt.h>
+#include <interrupt/idt.h>
 #include <mem/pagemap.h>
 #include <mem/vmm.h>
 #include <mem/pmm.h>
@@ -13,7 +13,7 @@
 #include <sys/syscall.h>
 #include <cpu/cpu.h>
 #include <scheduler/scheduler.h>
-#include <interrupt/apic/apic.h>
+#include <interrupt/apic.h>
 #include <time/pit.h>
 
 uint32_t bsp_lapic_id = 0;

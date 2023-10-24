@@ -1,4 +1,4 @@
-#include "cpu.h"
+#include <cpu/cpu.h>
 
 uint64_t fpu_storage_size;
 // function pointers masquerading as naked pointers

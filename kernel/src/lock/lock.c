@@ -1,4 +1,4 @@
-#include "lock.h"
+#include <lock/lock.h>
 #include <stdatomic.h>
 #include <klog/klog.h>
 #include <panic.h>

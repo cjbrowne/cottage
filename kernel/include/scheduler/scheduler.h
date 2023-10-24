@@ -5,7 +5,7 @@
 #include <lock/lock.h>
 #include <mem/pagemap.h>
 #include <stdint.h>
-#include <interrupt/idt/idt.h>
+#include <interrupt/idt.h>
 
 // todo: make configurable at runtime?
 #define PROC_MAX_FDS 256
