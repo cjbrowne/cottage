@@ -145,6 +145,10 @@ void _start(void)
         panic("Memmap missing.  Cannot determine where to map physical memory to virtual memory");
     }
 
+    klog("main", "Initializing PMM");
+    pmm_init(memmap_request.response);
+    klog("main", "PMM initialized");
+
     klog("main", "Initializing GDT");
     gdt_init();
     klog("main", "GDT Initialized");
@@ -156,9 +160,6 @@ void _start(void)
     klog("main", "Interrupts enabled");
 
 
-    klog("main", "Initializing PMM");
-    pmm_init(memmap_request.response);
-    klog("main", "PMM initialized");
 
     klog("main", "Initializing VMM");
     if (kernel_address_request.response == NULL)

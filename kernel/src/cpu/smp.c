@@ -19,6 +19,7 @@
 uint32_t bsp_lapic_id = 0;
 local_cpu_t** local_cpus;
 uint64_t cpu_count = 0;
+bool have_smp = false;
 
 void smp_init(struct limine_smp_response* smp_response)
 {
@@ -60,7 +61,7 @@ void smp_init(struct limine_smp_response* smp_response)
         // stall while offline
         while (atomic_load(&local_cpu->online) == 0);
     }
-
+    have_smp = true;
     klog("smp", "All CPUs brought online");
 }
 

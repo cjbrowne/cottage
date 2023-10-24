@@ -51,37 +51,6 @@ uint8_t idt_allocate_vector()
     return ret;
 }
 
-cpu_status_t *interrupts_handler(uint32_t num, cpu_status_t *status)
-{
-    klog("idt", "Handling interrupt %d", num);
-
-    switch (num)
-    {
-    case PAGE_FAULT:
-    {
-        klog("int", "Page fault %x", status->error_code);
-        klog("int", "Virtual Address %x", read_cr2());
-        panic("Page fault");
-        break;
-    }
-    case APIC_TIMER_INTERRUPT:
-    {
-        klog("int", "Timer"); // expecting this to be very very spammy
-        break;
-    }
-    default:
-    {
-        char buf[128];
-        snprintf(buf, 128, "interrupt %d not implemented", num);
-        panic(buf);
-        break;
-    }
-    }
-
-    // todo: implement me
-    return status;
-}
-
 void idt_init()
 {
     idt_reload();
@@ -93,6 +62,8 @@ void idt_reload()
         .limit = (sizeof(interrupt_descriptor_t) * IDT_ENTRY_COUNT) - 1,
         .ptr = idt
     };
+
+    klog("idt", "IDT at %x", idt);
 
     asm volatile (
         "lidt %0"
@@ -112,9 +83,6 @@ void set_idt_entry(uint16_t idx, uint8_t flags, uint16_t selector, uint8_t ist,
     idt[idx].offset_low = (uint16_t)((uint64_t)handler);
     idt[idx].offset_mid = (uint16_t)((uint64_t)handler >> 16);
     idt[idx].offset_high = (uint32_t)((uint64_t)handler >> 32);
-
-    // make sure this is always set to 0
-    idt[idx].zero = 0;
 }
 
 void set_ist(uint16_t vector, uint8_t ist)

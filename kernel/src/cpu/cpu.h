@@ -65,7 +65,7 @@ static inline bool cpu_interrupt_state()
     asm volatile (
         "pushfq\n"
         "pop %0"
-        : "=rm" (f)
+        : "=r" (f)
     );
     return (f & (1 << 9)) != 0;
 }

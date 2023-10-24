@@ -10,6 +10,10 @@
 #include <string.h>
 #include <stdarg.h>
 #include <macro.h>
+#include <cpu/smp.h>
+#include <serial/serial.h>
+
+extern bool have_term;
 
 static struct flanterm_context *ctx;
 
@@ -21,14 +25,31 @@ void term_init(uint32_t *framebuffer, size_t width, size_t height,
                size_t pitch)
 {
     ctx = flanterm_fb_simple_init(framebuffer, width, height, pitch);
+    ctx->autoflush = false; // disable autoflushing for SMP reasons
 }
 
 void term_write(const char *string, size_t count)
 {
+    have_term = false; // stops a PANIC loop
     // term writes must be locked since async writes will corrupt the framebuffer
     lock_acquire(&term_lock);
     flanterm_write(ctx, string, count);
+    print_serial(string);
+    print_serial("\r"); // add a carriage return after each write on serial
+    if(have_smp)
+    {
+        asm volatile("cli" ::: "memory");
+        uint64_t cpuid = cpu_get_current()->cpu_number;
+        if(cpuid == 0)
+            ctx->double_buffer_flush(ctx);
+        asm volatile("sti" ::: "memory");
+    }
+    else
+    {
+        ctx->double_buffer_flush(ctx);
+    }
     lock_release(&term_lock);
+    have_term = true;
 }
 
 void term_putc(const char c) { term_write(&c, 1); }

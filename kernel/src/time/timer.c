@@ -6,6 +6,7 @@
 #include <mem/pmm.h>
 #include <debug/debug.h>
 #include <lock/lock.h>
+#include <time/pit.h>
 
 extern pagemap_t g_kernel_pagemap;
 
@@ -44,6 +45,8 @@ void timer_init(int64_t epoch)
         .tv_sec = epoch,
         .tv_nsec = 0,
     };
+
+    pit_init();
 }
 
 void sleep(uint32_t millis)

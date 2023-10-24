@@ -45,5 +45,6 @@ local_cpu_t* cpu_get_current();
 extern local_cpu_t** local_cpus;
 extern uint32_t bsp_lapic_id;
 extern uint64_t cpu_count;
+extern bool have_smp;
 
 

@@ -68,7 +68,7 @@ void handle_exception(uint32_t num, __attribute__((unused)) cpu_status_t* cpu_st
     }
     else
     {
-        panic("Caught exception %s in kernel (aka 0x%x)", exception_names[num], num);
+        panic("Caught exception in kernel: %s (aka 0x%x)", exception_names[num], num);
     }
 }
 
@@ -80,6 +80,7 @@ void handle_interrupt(uint32_t num, __attribute__((unused)) cpu_status_t* cpu_st
 
 void isr_init() {
     uint64_t* isrs = (uint64_t*)((void*)interrupt_service_routines);
+    klog("isr", "ISR table at %x", isrs);
     for (uint16_t i = 0; i < 32; i++)
     {
         switch (i)
@@ -106,6 +107,6 @@ void isr_init() {
     }
 
     uint16_t abort_vector = idt_allocate_vector();
-    set_idt_entry(abort_vector, 0x8e, KERNEL_CODE_SEGMENT, 4, (void (*)())isrs[abort_vector]);
     interrupt_table[abort_vector] = (void*)handle_abort;
+    set_ist(abort_vector, 4);
 }

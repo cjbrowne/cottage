@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <macro.h>
 
 // this is *always* 256.  Do not change!
 #define IDT_ENTRY_COUNT 256
@@ -69,14 +70,13 @@ typedef struct
 
 typedef struct
 {
-    uint16_t offset_low; // offset bits 0..15
-    uint16_t selector;   // a code segment selector in GDT or LDT
-    uint8_t
-        ist;                 // bits 0..2 holds Interrupt Stack Table offset, rest of bits zero.
-    uint8_t type_attributes; // gate type, dpl, and p fields
-    uint16_t offset_mid;     // offset bits 16..31
-    uint32_t offset_high;    // offset bits 32..63
-    uint32_t zero;           // reserved
+    uint16_t offset_low;        // offset bits 0..15
+    uint16_t selector;          // a code segment selector in GDT or LDT
+    uint8_t ist;                // bits 0..2 holds Interrupt Stack Table offset, rest of bits zero.
+    uint8_t type_attributes;    // gate type, dpl, and p fields
+    uint16_t offset_mid;        // offset bits 16..31
+    uint32_t offset_high;       // offset bits 32..63
+    RESERVE_BYTES(4);           // reserve 32 bit int at the end 
 } __attribute__((packed)) interrupt_descriptor_t;
 
 typedef struct

@@ -46,11 +46,8 @@ void scheduler_isr(__attribute__((unused)) uint32_t num, __attribute__((unused))
 void scheduler_await()
 {
     // disable interrupts - we can't be interrupted while using cpu_get_current
-    // or else we might get an incorrect or inconsistent result
     asm volatile ("cli");
-    CHECKPOINT
     local_cpu_t* local_cpu = cpu_get_current();
-    CHECKPOINT
     // wait for 20ms
     lapic_timer_oneshot(local_cpu, scheduler_vector, 20000);
     // enable interrupts and run a HLT loop until the interrupt fires
