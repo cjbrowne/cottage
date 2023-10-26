@@ -39,8 +39,10 @@ void scheduler_init()
 
 void scheduler_isr(__attribute__((unused)) uint32_t num, __attribute__((unused)) cpu_status_t* status)
 {
-    klog("sched", "Interrupt %x fired", num);
-    panic("Scheduler ISR not yet implemented");
+    lapic_timer_stop();
+    local_cpu_t* cpu = cpu_get_current();
+    atomic_store(&cpu->is_idle, false);
+    // get_current_thread();
 }
 
 void scheduler_await()
@@ -51,7 +53,7 @@ void scheduler_await()
     // wait for 20ms
     lapic_timer_oneshot(local_cpu, scheduler_vector, 20000);
     // enable interrupts and run a HLT loop until the interrupt fires
-    asm volatile ("sti");
+    asm volatile ("sti" ::: "memory");
     for(;;)
     {
         asm volatile("hlt":::"memory");

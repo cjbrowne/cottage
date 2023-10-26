@@ -45,6 +45,8 @@ void isr_initialize_gates();
 
 extern void interrupt_service_routines(void);
 
+uint64_t abort_vector;
+
 void handle_pagefault(__attribute__((unused)) uint32_t num, __attribute__((unused)) cpu_status_t* cpu_state)
 {
     klog("isr", "Handling pagefault");
@@ -108,7 +110,7 @@ void isr_init() {
         interrupt_table[i] = (void*)handle_interrupt;
     }
 
-    uint16_t abort_vector = idt_allocate_vector();
+    abort_vector = idt_allocate_vector();
     interrupt_table[abort_vector] = (void*)handle_abort;
     set_ist(abort_vector, 4);
 }

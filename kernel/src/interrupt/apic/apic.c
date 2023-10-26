@@ -62,9 +62,9 @@ void lapic_send_ipi(uint8_t lapic_id, uint8_t vector)
     lapic_write(LAPIC_REG_ICR0, vector);
 }
 
-void lapic_timer_calibrate(local_cpu_t local_cpu)
+void lapic_timer_calibrate(local_cpu_t* local_cpu)
 {
-    klog("lapic", "Calibrating lapic timer for CPU %d", local_cpu.cpu_number);
+    klog("lapic", "Calibrating lapic timer for CPU %d", local_cpu->cpu_number);
     lapic_timer_stop();
     uint64_t samples = 0xfffff;
     lapic_write(LAPIC_REG_TIMER, (1 << 16) | 0xff); // vector 0xff, masked
@@ -77,9 +77,9 @@ void lapic_timer_calibrate(local_cpu_t local_cpu)
     klog("lapic", "Waiting for %u timer ticks", samples);
 
     lapic_write(LAPIC_REG_TIMER_INITCNT, (uint32_t)samples);
-    int64_t curcnt = 0;
+    uint64_t curcnt = 0;
 
-    while((curcnt = lapic_read(LAPIC_REG_TIMER_CURCNT)) > 0)
+    while((curcnt = lapic_read(LAPIC_REG_TIMER_CURCNT)) != 0)
     {
         klog("lapic", "Count: %d", curcnt);
     }
@@ -88,7 +88,7 @@ void lapic_timer_calibrate(local_cpu_t local_cpu)
 
     uint64_t pit_ticks = initial_pit_tick - final_pit_tick;
 
-    local_cpu.lapic_timer_freq = (samples / pit_ticks) * PIT_DIVIDEND;
+    local_cpu->lapic_timer_freq = (samples / pit_ticks) * PIT_DIVIDEND;
     
     lapic_timer_stop();
 }
