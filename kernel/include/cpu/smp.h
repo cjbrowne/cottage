@@ -38,6 +38,7 @@ typedef struct {
     _Atomic bool aborted;
 } local_cpu_t;
 
+
 void smp_init(struct limine_smp_response* smp_response);
 void cpu_init(struct limine_smp_info* smp_info);
 local_cpu_t* cpu_get_current();

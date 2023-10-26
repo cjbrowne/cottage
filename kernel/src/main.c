@@ -193,6 +193,7 @@ void _start(void)
     klog("main", "PCI devices enumerated");
 
     klog("main", "Initializing SMP");
+    klog("main", "SMP response was: %x", smp_request.response);
     smp_init(smp_request.response);
     klog("main", "SMP initialized");
 

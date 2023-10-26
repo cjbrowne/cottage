@@ -76,6 +76,11 @@ void cpu_init(struct limine_smp_info* smp_info)
     gdt_reload();
     idt_reload();
 
+
+    // ChatGPT suggested adding this to make sure the alignments are all correct,
+    // however I was never in any doubt...
+    _Static_assert(_Alignof(local_cpu_t) % _Alignof(task_state_segment_t) == 0, "TSS is not properly aligned");
+
     gdt_load_tss((void*) &(local_cpu->tss));
 
     local_cpu->tss.ist4 = local_cpu->abort_stack[ABORT_STACK_SIZE - 1];

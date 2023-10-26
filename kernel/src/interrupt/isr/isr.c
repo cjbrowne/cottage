@@ -48,6 +48,7 @@ extern void interrupt_service_routines(void);
 void handle_pagefault(__attribute__((unused)) uint32_t num, __attribute__((unused)) cpu_status_t* cpu_state)
 {
     klog("isr", "Handling pagefault");
+    panic("Can't handle PF properly yet");
 }
 
 void handle_abort(__attribute__((unused)) uint32_t num, __attribute__((unused)) cpu_status_t* cpu_state)
@@ -87,7 +88,8 @@ void isr_init() {
         {
             case 14:
             {
-                set_idt_entry(i, 0x8e, KERNEL_CODE_SEGMENT, 3, (void (*)())isrs[i]);
+                // todo: change IST to 3 when TSS is working correctly
+                set_idt_entry(i, 0x8e, KERNEL_CODE_SEGMENT, 0, (void (*)())isrs[i]);
                 interrupt_table[i] = (void*)handle_pagefault;
                 break;
             }

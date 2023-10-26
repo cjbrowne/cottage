@@ -93,6 +93,7 @@ bool enqueue_thread(thread_t* thread, bool by_signal)
 
 thread_t* new_kernel_thread(void* ip, void* arg, bool autoenqueue)
 {
+    klog("sched", "Queueing up new kernel thread");
     void* stacks[PROC_MAX_STACKS_PER_THREAD];
     size_t stack_count = 0;
     void* stack_phys = pmm_alloc(STACK_SIZE / PAGE_SIZE);
