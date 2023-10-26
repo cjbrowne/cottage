@@ -26,12 +26,37 @@ extern bool have_smp;
 
 lock_t panic_lock;
 
+void dump_task_state_segment(const task_state_segment_t *tss) {
+    term_printf("  TSS Dump:\n");
+    term_printf("    RSP0: %x RSP1: %x RSP2: %x\n", tss->rsp0, tss->rsp1, tss->rsp2);
+    term_printf("    IST1: %x IST2: %x IST3: %x\n", tss->ist1, tss->ist2, tss->ist3);
+    term_printf("    IST4: %x IST5: %x IST6: %x IST7: %x\n", tss->ist4, tss->ist5, tss->ist6, tss->ist7);
+    term_printf("    IOPB: %x\n", tss->iopb);
+}
+
+void dump_local_cpu(const local_cpu_t *cpu) {
+    term_printf("Local CPU Dump:\n");
+    term_printf("  CPU Number: %x Zero: %x\n", cpu->cpu_number, cpu->zero);
+    dump_task_state_segment(&(cpu->tss));
+    term_printf("  LAPIC ID: %x LAPIC Timer Freq: %x\n", cpu->lapic_id, cpu->lapic_timer_freq);
+    term_printf("  Online: %x Is Idle: %d\n", cpu->online, cpu->is_idle);
+    term_printf("  Last Run Queue Index: %ld\n", cpu->last_run_queue_index);
+    term_printf("  Abort Stack:\n");
+    for (int i = 0; i < ABORT_STACK_SIZE; ++i) {
+        term_printf("    %x\n", cpu->abort_stack[i]);
+    }
+    term_printf("  Aborted: %d\n", cpu->aborted);
+}
+
 __attribute__((noreturn)) void panic(const char *msg, ...)
 {
     // only allow panicking once by locking and then never unlocking
     lock_acquire(&panic_lock);
     // don't allow interrupts after a kernel panic
-    asm volatile("cli");
+    asm volatile("cli" ::: "memory");
+    local_cpu_t* cpu = NULL;
+    if(have_smp)
+        cpu = cpu_get_current();
     va_list args, args2;
     va_copy(args2, args);
 
@@ -40,7 +65,7 @@ __attribute__((noreturn)) void panic(const char *msg, ...)
     {
         for (size_t i = 0; i < cpu_count; i++)
         {
-            if (cpu_get_current()->lapic_id == local_cpus[i]->lapic_id) continue;
+            if (cpu->lapic_id == local_cpus[i]->lapic_id) continue;
             lapic_send_ipi(local_cpus[i]->lapic_id, abort_vector);
             while(!atomic_load(&local_cpus[i]->aborted));
         }
@@ -52,6 +77,8 @@ __attribute__((noreturn)) void panic(const char *msg, ...)
         va_start(args, msg);
         term_vprintf(msg, args);
         va_end(args);
+        if(have_smp)
+            dump_local_cpu(cpu);
     }
     
     {

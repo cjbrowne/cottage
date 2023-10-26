@@ -11,6 +11,7 @@
 #include <gdt/gdt.h>
 #include <interrupt/apic.h>
 #include <string.h>
+#include <debug/debug.h>
 
 // use 2MB stack, similar to Linux
 #define STACK_SIZE 0x200000LL
@@ -139,7 +140,6 @@ void scheduler_isr(__attribute__((unused)) uint32_t num, __attribute__((unused))
     if (read_cr3() != current_thread->cr3)
         write_cr3(current_thread->cr3);
 
-    // this is the problem >:(
     fpu_restore(current_thread->fpu_storage);
 
     atomic_store(&current_thread->cpuid, cpu->cpu_number);

@@ -213,6 +213,7 @@ void _start(void)
     scheduler_init();
     klog("main", "Scheduler initialized");
 
+    klog("main", "Kernel main thread starts at %x", kmain_thread);
     new_kernel_thread((void*)kmain_thread, NULL, true);
 
     klog("main", "Startup complete");

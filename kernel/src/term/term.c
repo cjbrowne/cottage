@@ -39,8 +39,10 @@ void term_write(const char *string, size_t count)
     if(have_smp)
     {
         asm volatile("cli" ::: "memory");
-        uint64_t cpuid = cpu_get_current()->cpu_number;
-        if(cpuid == 0)
+        // I'm *worried* that doing the flush on any core other than zero could result in a race,
+        // but I'm leaving it commented out and trusting my locks for now...
+        //uint64_t cpuid = cpu_get_current()->cpu_number;
+        //if (cpuid == 0)
             ctx->double_buffer_flush(ctx);
         asm volatile("sti" ::: "memory");
     }
