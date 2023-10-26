@@ -62,7 +62,7 @@ void handle_abort(__attribute__((unused)) uint32_t num, __attribute__((unused)) 
     }
 }
 
-void handle_exception(uint32_t num, __attribute__((unused)) cpu_status_t* cpu_state)
+void handle_exception(uint32_t num, cpu_status_t* cpu_state)
 {
     if(cpu_state->cs == USER_CODE_SEGMENT)
     {
@@ -71,6 +71,9 @@ void handle_exception(uint32_t num, __attribute__((unused)) cpu_status_t* cpu_st
     }
     else
     {
+        klog("isr", "Exception num=%d errno=%d", num, cpu_state->error_code);
+        klog("isr", "rip=%x rsi=%x", cpu_state->rip, cpu_state->rsi);
+        klog("isr", "rsp=%x", cpu_state->rsp);
         panic("Caught exception in kernel: %s (aka 0x%x)", exception_names[num], num);
     }
 }

@@ -1,15 +1,16 @@
 #include <cpu/cpu.h>
 
+
 uint64_t fpu_storage_size;
 // function pointers masquerading as naked pointers
-void* fpu_save;
-void* fpu_restore;
+fpuSaveFn fpu_save;
+fpuRestoreFn fpu_restore;
 
 void xsave(void* region)
 {
     asm volatile (
-        "xsave %0"
-        : : "m" (region),
+        "xsave (%0)"
+        : : "r" (region),
         "a" (0xffffffff),
         "d" (0xffffffff)
         : "memory"
@@ -19,8 +20,8 @@ void xsave(void* region)
 void xrstor(void* region)
 {
     asm volatile (
-        "xrstor %0"
-        : : "m" (region),
+        "xrstor (%0)"
+        : : "r" (region),
         "a" (0xffffffff),
         "d" (0xffffffff)
         : "memory"
@@ -30,8 +31,8 @@ void xrstor(void* region)
 void fxsave(void* region)
 {
     asm volatile (
-        "fxsave %0"
-        : : "m" (region)
+        "fxsave (%0)"
+        : : "r" (region)
         : "memory"
     );
 }
@@ -39,8 +40,8 @@ void fxsave(void* region)
 void fxrstor(void* region)
 {
     asm volatile (
-        "fxrstor %0"
-        : : "m" (region)
+        "fxrstor (%0)"
+        : : "r" (region)
         : "memory"
     );
 }

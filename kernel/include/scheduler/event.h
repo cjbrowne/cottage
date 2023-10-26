@@ -18,3 +18,5 @@ typedef struct {
 } event_t;
 
 uint64_t event_trigger(event_t* event, bool drop);
+
+extern _Atomic uint64_t waiting_event_count;

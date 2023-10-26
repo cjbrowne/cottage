@@ -33,7 +33,7 @@ typedef struct {
     uint64_t lapic_timer_freq;
     _Atomic uint64_t online;
     _Atomic bool is_idle;
-    uint64_t last_run_queue_index;
+    int64_t last_run_queue_index;
     uint64_t abort_stack[ABORT_STACK_SIZE];
     _Atomic bool aborted;
 } local_cpu_t;

@@ -3,6 +3,9 @@
 #include <stdbool.h>
 #include <cpu/msr.h>
 
+typedef void (*fpuSaveFn)(void*);
+typedef void (*fpuRestoreFn)(void*);
+
 #define CPUID_XSAVE (1 << 26)
 #define CPUID_AVX (1 << 28)
 #define CPUID_AVX512 (1 << 16)
@@ -12,9 +15,29 @@ static inline void set_kernel_gs_base(uint64_t ptr)
     wrmsr(0xc0000102, ptr);
 }
 
+static inline uint64_t get_kernel_gs_base()
+{
+    return rdmsr(0xc0000102);
+}
+
 static inline void set_gs_base(uint64_t ptr)
 {
     wrmsr(0xc0000101, ptr);
+}
+
+static inline uint64_t get_gs_base()
+{
+    return rdmsr(0xc0000101);
+}
+
+static inline void set_fs_base(uint64_t ptr)
+{
+    wrmsr(0xc0000100, ptr);
+}
+
+static inline uint64_t get_fs_base()
+{
+    return rdmsr(0xc0000100);
 }
 
 static inline void wrxcr(uint32_t reg, uint64_t val)
@@ -72,6 +95,6 @@ static inline bool cpu_interrupt_state()
 
 extern uint64_t fpu_storage_size;
 // function pointers
-extern void* fpu_save;
-extern void* fpu_restore;
+extern fpuSaveFn fpu_save;
+extern fpuRestoreFn fpu_restore;
 
