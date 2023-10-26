@@ -83,10 +83,9 @@ void cpu_init(struct limine_smp_info* smp_info)
 
     gdt_load_tss((void*) &(local_cpu->tss));
 
-    local_cpu->tss.ist4 = local_cpu->abort_stack[ABORT_STACK_SIZE - 1];
+    local_cpu->tss.ist4 = (uint64_t)&local_cpu->abort_stack[ABORT_STACK_SIZE - 1];
 
     switch_pagemap(&g_kernel_pagemap);
-
 
     uint64_t stack_size = MiB(2);
     void* common_int_stack_phys = pmm_alloc(stack_size / PAGE_SIZE);
@@ -118,8 +117,8 @@ void cpu_init(struct limine_smp_info* smp_info)
     pat_msr |= ((uint64_t) 0x0105) << 32;
     wrmsr(0x277, pat_msr);
 
-    set_gs_base((uint64_t) local_cpu->cpu_number);
-    set_kernel_gs_base((uint64_t) local_cpu->cpu_number);
+    set_gs_base((uint64_t) &local_cpu->cpu_number);
+    set_kernel_gs_base((uint64_t) &local_cpu->cpu_number);
 
     // enable sse/sse2
     uint64_t cr0 = read_cr0();
