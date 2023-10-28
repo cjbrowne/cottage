@@ -202,6 +202,83 @@ void scheduler_await()
     }
 }
 
+bool scheduler_dequeue_thread(thread_t* thread)
+{
+    // shortcut for duplicate calls
+    if(thread->is_in_queue == false)
+    {
+        return true;
+    }
+
+    for(uint64_t i = 0; i < MAX_THREADS; i++)
+    {
+        if(atomic_compare_exchange_strong(&scheduler_running_queue[i], &thread, NULL))
+        {
+            thread->is_in_queue = false;
+            return true;
+        }
+    }
+
+    // did not find thread, but thread thinks it is running
+    // should this be a panic?! kind of fucked up situation tbh
+    return false;
+}
+
+void scheduler_yield(bool save_context)
+{
+    asm volatile ("cli" ::: "memory");
+    lapic_timer_stop();
+    local_cpu_t* local_cpu = cpu_get_current();
+    thread_t* current_thread = get_current_thread();
+
+    if (save_context)
+    {
+         // acquire the yield await lock
+         // ready to later on use the lock to wait for
+         // an interrupt
+         lock_acquire(&current_thread->yield_await);
+    }
+    else
+    {
+        set_gs_base((uint64_t)&local_cpu->cpu_number);
+        set_kernel_gs_base((uint64_t)&local_cpu->cpu_number);
+    }
+
+    lapic_send_ipi((uint8_t)local_cpu->lapic_id, scheduler_vector);
+
+    asm volatile("sti" ::: "memory");
+
+    if(save_context)
+    {
+        // wait for a scheduler interrupt to fire and save the context
+        lock_acquire(&current_thread->yield_await);
+        lock_release(&current_thread->yield_await);
+    }
+    else
+    {
+        // hlt loop -- another thread should take over after the next interrupt
+        while(1) asm volatile ("hlt" ::: "memory");
+    }
+}
+
+__attribute__((noreturn)) 
+void scheduler_dequeue_and_die()
+{
+    asm volatile ( "cli":::"memory" );
+    thread_t* t = get_current_thread();
+
+    scheduler_dequeue_thread(t);
+
+    for(size_t i = 0; i < PROC_MAX_STACKS_PER_THREAD; i++)
+    {
+        pmm_free(t->stacks[i], STACK_SIZE / PAGE_SIZE);
+    }
+
+    free(t);
+    scheduler_yield(false);
+    while(1);
+}
+
 bool enqueue_thread(thread_t *thread, bool by_signal)
 {
     // shortcut for duplicate calls

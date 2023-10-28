@@ -18,6 +18,11 @@
 #include <gdt/gdt.h>
 #include <time/pit.h>
 #include <time/timer.h>
+#include <sys/syscall.h>
+#include <socket/socket.h>
+#include <pipe/pipe.h>
+#include <futex/futex.h>
+#include <fs/fs.h>
 
 // hardware-specific stuff 
 // todo: move this shit behind HAL and/or into modules
@@ -79,7 +84,7 @@ static volatile struct limine_boot_time_request boottime_request = {
 
 void* g_framebuffer;
 
-void* kmain_thread(void* arg);
+void kmain_thread(void* arg);
 
 // The following will be our kernel's entry point.
 // If renaming _start() to something else, make sure to change the
@@ -226,8 +231,30 @@ void _start(void)
     panic("kernel returned");
 }
 
-void* kmain_thread(void* arg)
+void kmain_thread(void* arg)
 {
     if(arg != NULL) panic("kmain_thread passed a non-null argument");
-    panic("Implement kmain_thread");
+
+    klog("main", "Initializing syscall table");
+    syscall_init();
+    klog("main", "Syscall table initialized");
+
+    klog("main", "Initializing socket layer");
+    socket_init();
+    klog("main", "Socket layer initialized");
+
+    klog("main", "Initializing pipes");
+    pipe_init();
+    klog("main", "Pipes initialized");
+
+
+    klog("main", "Initializing futex");
+    futex_init();
+    klog("main", "Futex initialized");
+
+    klog("main", "Initializing filesystem");
+    fs_init();
+    klog("main", "Filesystem initialized");
+
+    scheduler_dequeue_and_die();
 }

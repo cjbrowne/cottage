@@ -31,11 +31,18 @@ lock_t klog_lock = {
 
 void klog_putc(char c);
 
-void klog(const char *module, const char *fmt, ...)
+void syscall_klog(const char* fmt, ...)
 {
     lock_acquire(&klog_lock);
     va_list args;
     va_start(args, fmt);
+    vklog("user", fmt, args);
+    va_end(args);
+    lock_release(&klog_lock);
+}
+
+void vklog(const char* module, const char* fmt, va_list args)
+{
     size_t log_end_start = log_end;
     klog_putc('[');
     while (*module)
@@ -99,6 +106,14 @@ void klog(const char *module, const char *fmt, ...)
             term_write(klog_buf + log_end_start, (log_end - log_end_start));
         }
     }
+}
+
+void klog(const char *module, const char *fmt, ...)
+{
+    lock_acquire(&klog_lock);
+    va_list args;
+    va_start(args, fmt);
+    vklog(module, fmt, args);
     va_end(args);
     lock_release(&klog_lock);
 }

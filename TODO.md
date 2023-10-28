@@ -2,18 +2,21 @@
 
     It feels a bit high-fallutin to call this a "roadmap", so it's rather a loose collection of TODO items
 
-* \[done] Bootloader (limine)
-* \[done] Memory Management
-* \[done] Logging to in-kernel ring buffer
-* \[done] Terminal output of ring buffer log
-* \[done] Enable HPET
-* \[done] Enable Paging and setup page map
-* \[done] Enable Interrupts, setup some basic handlers
-* \[todo] Virtual Filesystem
-* \[todo] Load kernel modules (e.g drivers)
-* \[inprogress] Scheduler
-* \[todo] Load user programs
-* \[inprogress] Build network stack
-* \[todo] Build web server
-* \[todo] Start building frontend site
-* \[todo] Develop protocol for system calls
+* [x] Bootloader (limine)
+* [x] Memory Management
+* [x] Logging to in-kernel ring buffer
+* [x] Terminal output of ring buffer log
+* [x] Enable HPET
+* [x] Enable Paging and setup page map
+* [x] Enable Interrupts, setup some basic handlers
+* [x] Scheduler (basic)
+* [x] syscalls
+* [] Futex system call
+* [] Virtual Filesystem
+* [] Load kernel modules (e.g drivers)
+* [] Load user programs
+* [] Network stack
+* [] Web server kernel module
+* [] Syscalls over HTTP 
+* [] JS: user authentication
+* [] JS: windowing system
