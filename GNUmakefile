@@ -2,7 +2,7 @@
 # make sure to change the `-j` flag for your system!
 override MAKEFLAGS += -rR -j 8
 
-override IMAGE_NAME := webos
+override IMAGE_NAME := hopper
 
 # set to true to use the nightly OVMF image
 OVMF_USE_NIGHTLY := false
