@@ -79,7 +79,7 @@ static volatile struct limine_boot_time_request boottime_request = {
 
 void* g_framebuffer;
 
-void kmain_thread();
+void* kmain_thread(void* arg);
 
 // The following will be our kernel's entry point.
 // If renaming _start() to something else, make sure to change the
@@ -214,7 +214,7 @@ void _start(void)
     klog("main", "Scheduler initialized");
 
     klog("main", "Kernel main thread starts at %x", kmain_thread);
-    new_kernel_thread((void*)kmain_thread, NULL, true);
+    new_kernel_thread(kmain_thread, NULL, true);
 
     klog("main", "Startup complete");
     scheduler_await();
@@ -225,7 +225,8 @@ void _start(void)
     panic("kernel returned");
 }
 
-void kmain_thread()
+void* kmain_thread(void* arg)
 {
+    if(arg != NULL) panic("kmain_thread passed a non-null argument");
     panic("Implement kmain_thread");
 }

@@ -3,9 +3,9 @@
 # want to build it "natively", then feel free to just run `make` instead of
 # building using Docker.  If you want to build using Docker, this file is here.
 
-FROM gcc:10
+FROM silkeh/clang:15-bookworm
 
 RUN apt-get update
-RUN apt-get -y install xorriso nasm
+RUN apt-get -y install xorriso nasm 
 
 WORKDIR /src

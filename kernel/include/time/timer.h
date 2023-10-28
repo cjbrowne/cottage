@@ -45,7 +45,7 @@ typedef struct {
     bool fired;
 } timer_t;
 
-void timer_init();
+void timer_init(int64_t epoch);
 void hpet_init();
 void sleep(uint32_t millis);
 uint64_t get_ticks_per_second();

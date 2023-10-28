@@ -45,22 +45,24 @@ all-hdd: $(IMAGE_NAME).hdd
 .PHONY: test
 test: run-uefi
 
+QEMU_FLAGS := -no-reboot -d cpu_reset -smp cpus=2 -M q35 -m 2G
+
 .PHONY: run
 run: $(IMAGE_NAME).iso
-	qemu-system-x86_64 -smp cpus=2 -M q35 -m 2G -cdrom $(IMAGE_NAME).iso -boot d
+	qemu-system-x86_64 $(QEMU_FLAGS) -cdrom $(IMAGE_NAME).iso -boot d
 
 
 .PHONY: run-uefi
 run-uefi: ovmf $(IMAGE_NAME).iso
-	qemu-system-x86_64 -smp cpus=2 -M q35 -m 2G -bios $(OVMF_IMAGE) -cdrom $(IMAGE_NAME).iso -boot d
+	qemu-system-x86_64 $(QEMU_FLAGS) -bios $(OVMF_IMAGE) -cdrom $(IMAGE_NAME).iso -boot d
 
 .PHONY: run-hdd
 run-hdd: $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -smp cpus=2 -M q35 -m 2G -hda $(IMAGE_NAME).hdd
+	qemu-system-x86_64 $(QEMU_FLAGS) -hda $(IMAGE_NAME).hdd
 
 .PHONY: run-hdd-uefi
 run-hdd-uefi: ovmf $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -smp cpus=2 -M q35 -m 2G -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
+	qemu-system-x86_64 $(QEMU_FLAGS) -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
 
 ovmf:
 	mkdir -p ovmf

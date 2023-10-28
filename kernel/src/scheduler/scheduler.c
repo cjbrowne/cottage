@@ -125,7 +125,7 @@ void scheduler_isr(__attribute__((unused)) uint32_t num, __attribute__((unused))
     cpu->last_run_queue_index = new_index;
 
     set_gs_base((uint64_t)current_thread);
-    if (current_thread->cpu_state.cs == 0x43)
+    if (current_thread->cpu_state.cs == USER_CODE_SEGMENT)
     {
         set_kernel_gs_base(current_thread->gs_base);
     }
@@ -269,6 +269,8 @@ thread_t *new_kernel_thread(void *ip, void *arg, bool autoenqueue)
     t->fpu_storage = (void *)((uint64_t)pmm_alloc(div_roundup(fpu_storage_size, PAGE_SIZE)) + HIGHER_HALF);
     t->self = t;
     t->gs_base = (uint64_t)t;
+
+
     if (autoenqueue)
     {
         if (!enqueue_thread(t, false))
