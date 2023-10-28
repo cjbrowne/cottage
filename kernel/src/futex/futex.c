@@ -1,5 +1,6 @@
 #include <lock/lock.h>
 #include <futex/futex.h>
+#include <klog/klog.h>
 
 lock_t futex_lock;
 
