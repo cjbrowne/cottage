@@ -188,9 +188,10 @@ void _start(void)
         acpi_init(rsdp_request.response->address);
     }
 
-    klog("main", "Enumerating PCI devices");
-    pci_init();
-    klog("main", "PCI devices enumerated");
+    // todo: move to kmain_thread
+    // klog("main", "Enumerating PCI devices");
+    // pci_init();
+    // klog("main", "PCI devices enumerated");
 
     klog("main", "Initializing SMP");
     klog("main", "SMP response was: %x", smp_request.response);

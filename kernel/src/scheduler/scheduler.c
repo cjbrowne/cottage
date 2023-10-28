@@ -14,7 +14,7 @@
 #include <debug/debug.h>
 
 // use 2MB stack, similar to Linux
-#define STACK_SIZE 0x200000LL
+#define STACK_SIZE (uint64_t)(0x200000)
 #define MAX_THREADS 512
 
 // variables
@@ -147,8 +147,8 @@ void scheduler_isr(__attribute__((unused)) uint32_t num, __attribute__((unused))
     lapic_eoi();
     lapic_timer_oneshot(cpu, scheduler_vector, current_thread->timeslice);
 
-    cpu_status_t new_cpu_state = current_thread->cpu_state;
-    if (new_cpu_state.cs == USER_CODE_SEGMENT)
+    cpu_status_t* new_cpu_state = &current_thread->cpu_state;
+    if (new_cpu_state->cs == USER_CODE_SEGMENT)
     {
         // todo: dispatch a signal
         klog("sched", "Should dispatch signal but not yet implemented");
@@ -246,6 +246,9 @@ thread_t *new_kernel_thread(void *ip, void *arg, bool autoenqueue)
     void *stack_phys = pmm_alloc(STACK_SIZE / PAGE_SIZE);
     stacks[stack_count++] = stack_phys;
     uint64_t stack = ((uint64_t)stack_phys) + STACK_SIZE + HIGHER_HALF;
+
+
+    klog("sched", "stack=%x", stack);
 
     cpu_status_t cpu_state = {
         .cs = KERNEL_CODE_SEGMENT,

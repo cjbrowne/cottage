@@ -45,7 +45,7 @@ all-hdd: $(IMAGE_NAME).hdd
 .PHONY: test
 test: run-uefi
 
-QEMU_FLAGS := -no-reboot -d cpu_reset -smp cpus=2 -M q35 -m 2G
+QEMU_FLAGS := -d cpu_reset -smp cpus=1 -M q35 -m 2G -serial stdio
 
 .PHONY: run
 run: $(IMAGE_NAME).iso

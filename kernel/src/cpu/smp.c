@@ -79,14 +79,13 @@ void cpu_init(struct limine_smp_info* smp_info)
     // ChatGPT suggested adding this to make sure the alignments are all correct,
     // however I was never in any doubt...
     _Static_assert(_Alignof(local_cpu_t) % _Alignof(task_state_segment_t) == 0, "TSS is not properly aligned");
-
-    gdt_load_tss((void*) &(local_cpu->tss));
+    gdt_load_tss((void*) &local_cpu->tss);
 
     local_cpu->tss.ist4 = (uint64_t)&local_cpu->abort_stack[ABORT_STACK_SIZE - 1];
 
     switch_pagemap(&g_kernel_pagemap);
 
-    uint64_t stack_size = MiB(2);
+    uint64_t stack_size = (uint64_t)0x200000;
     void* common_int_stack_phys = pmm_alloc(stack_size / PAGE_SIZE);
     uint64_t* common_int_stack = (uint64_t*)((uint64_t)common_int_stack_phys + stack_size + HIGHER_HALF);
     local_cpu->tss.rsp0 = (uint64_t)common_int_stack;
