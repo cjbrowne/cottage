@@ -22,5 +22,5 @@ vfs_node_t* tmpfs_mount(filesystem_t* self, vfs_node_t* parent, const char* name
 vfs_node_t* tmpfs_create_node(filesystem_t* self, vfs_node_t* parent, const char* name, int mode);
 vfs_node_t* tmpfs_symlink(filesystem_t* self, vfs_node_t* parent, const char* dest, const char* target);
 vfs_node_t* tmpfs_link(filesystem_t* self, vfs_node_t* parent, const char* dest, vfs_node_t* target);
-void tmpfs_close();
+void tmpfs_close(__attribute__((unused)) filesystem_t* self);
 
