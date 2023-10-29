@@ -11,8 +11,8 @@
 * [x] Enable Interrupts, setup some basic handlers
 * [x] Scheduler (basic)
 * [x] syscalls
-* [] Futex system call
-* [] Virtual Filesystem
+* [] Futex system call (do I even need this? I hope not :( )
+* [x] Virtual Filesystem
 * [] Load kernel modules (e.g drivers)
 * [] Load user programs
 * [] Network stack

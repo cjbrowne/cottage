@@ -6,6 +6,6 @@
 FROM silkeh/clang:15-bookworm
 
 RUN apt-get update
-RUN apt-get -y install xorriso nasm 
+RUN apt-get -y install xorriso nasm git
 
 WORKDIR /src

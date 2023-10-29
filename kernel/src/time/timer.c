@@ -14,7 +14,7 @@ static hpet_t* hpet = 0;
 timespec_t monotonic_clock;
 timespec_t realtime_clock;
 lock_t timers_lock;
-timer_t* armed_timers;
+hpr_timer_t* armed_timers;
 size_t armed_timers_count;
 
 void hpet_init()
@@ -139,7 +139,7 @@ void timer_handler()
     {
         for(size_t i = 0; i < armed_timers_count; i++)
         {
-            timer_t t = armed_timers[i];
+            hpr_timer_t t = armed_timers[i];
             if (t.fired) continue;
             if (sub_interval(&t.when, interval))
             {

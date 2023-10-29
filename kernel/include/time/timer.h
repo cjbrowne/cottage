@@ -43,7 +43,7 @@ typedef struct {
     event_t event;
     uint64_t index;
     bool fired;
-} timer_t;
+} hpr_timer_t;
 
 void timer_init(int64_t epoch);
 void hpet_init();
