@@ -51,6 +51,7 @@ void fs_init()
    filesystems[FS_TMPFS] = tmpfs_init();
 
    filesystems[FS_DEVTMPFS] = devtmpfs_init();
-//  filesystems[FS_EXT2] = ext2fs_init();
+   // todo: finish implementing ext2 support 
+   //filesystems[FS_EXT2] = ext2_init();
 }
 
