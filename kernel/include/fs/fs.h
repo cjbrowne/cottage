@@ -43,8 +43,9 @@ typedef struct vfs_node_s {
 
 void fs_init();
 vfs_node_t* vfs_create_node(filesystem_t* filesystem, vfs_node_t* parent, const char* name, bool dir);
+void vfs_add_child(int* num_children, vfs_node_t** children, vfs_node_t* new_child);
 
 // todo: extern these?
 // extern lock_t vfs_lock;
 // extern vfs_node_t* vfs_root;
-// extern filesystem_t* filesystems;
+extern filesystem_t** filesystems;

@@ -1,5 +1,6 @@
 #include <fs/fs.h>
 #include <fs/tmpfs.h>
+#include <fs/devtmpfs.h>
 #include <lock/lock.h>
 #include <stdlib.h>
 
@@ -33,6 +34,15 @@ vfs_node_t* vfs_create_node(filesystem_t* filesystem, vfs_node_t* parent, const 
     return node;
 }
 
+void vfs_add_child(int* num_children, vfs_node_t** children, vfs_node_t* new_child)
+{
+    // the last node is already pre-allocated for us
+    children[*num_children] = new_child;
+    // pre-allocate the next child
+    (*num_children)++;
+    *children = realloc(*children, sizeof(vfs_node_t*) * (*num_children)+1);
+}
+
 void fs_init()
 {
    vfs_root = vfs_create_node(NULL, NULL, "", false);
@@ -40,7 +50,7 @@ void fs_init()
    filesystems = malloc(sizeof(filesystem_t*) * KERNEL_FILESYSTEM_COUNT); 
    filesystems[FS_TMPFS] = tmpfs_init();
 
-//  filesystems[FS_DEVTMPFS] = devtmpfs_create();
-//  filesystems[FS_EXT2] = ext2fs_create();
+   filesystems[FS_DEVTMPFS] = devtmpfs_init();
+//  filesystems[FS_EXT2] = ext2fs_init();
 }
 
