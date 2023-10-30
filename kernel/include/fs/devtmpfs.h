@@ -13,8 +13,9 @@ typedef struct {
 } devtmpfs_resource_t;
 
 
-filesystem_t* devtmpfs_init();
+filesystem_t* devtmpfs_create();
 
+filesystem_t* devtmpfs_init(filesystem_t* self);
 void devtmpfs_populate(filesystem_t* self, vfs_node_t* node);
 vfs_node_t* devtmpfs_mount(filesystem_t* self, vfs_node_t* parent, const char* name, vfs_node_t* source);
 vfs_node_t* devtmpfs_create_node(filesystem_t* self, vfs_node_t* parent, const char* name, int mode);

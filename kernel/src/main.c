@@ -222,7 +222,7 @@ void _start(void)
     klog("main", "Kernel main thread starts at %x", kmain_thread);
     new_kernel_thread(kmain_thread, NULL, true);
 
-    klog("main", "Startup complete");
+    klog("main", "Pre-startup complete");
     scheduler_await();
 
     // we're at the point where we would return control to the bootloader,
@@ -255,6 +255,24 @@ void kmain_thread(void* arg)
     klog("main", "Initializing filesystem");
     fs_init();
     klog("main", "Filesystem initialized");
+
+    
+    // mount -t tmpfs /
+    if(!fs_mount(vfs_root, "", "/", FS_TMPFS))
+    {
+        panic("Could not mount root filesystem");
+    }
+    // mkdir /dev
+    if(fs_create(vfs_root, "/dev", 0644 | STAT_IFDIR) == NULL)
+    {
+        panic("Could not create /dev directory");
+    }
+    // mount -t devtmpfs /dev
+    if(!fs_mount(vfs_root, "", "/dev", FS_DEVTMPFS))
+    {
+        panic("Could not mount devtmpfs filesystem");
+    }
+
 
     scheduler_dequeue_and_die();
 }

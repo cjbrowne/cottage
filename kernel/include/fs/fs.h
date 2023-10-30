@@ -9,15 +9,17 @@
 
 // the indices into the filesystems[] array for each of the kernel-included
 // filesystems.  Modular filesystems are placed after the baked in ones.
-#define FS_TMPFS 0
-#define FS_DEVTMPFS 1
-#define FS_EXT2 2
+typedef enum {
+    FS_TMPFS = 0,
+    FS_DEVTMPFS = 1,
+    FS_EXT2 = 2
+} hpr_fsid_t;
 
 typedef struct filesystem_s filesystem_t;
 typedef struct vfs_node_s vfs_node_t;
 
 typedef struct filesystem_s {
-    filesystem_t* (*instantiate)(void);
+    filesystem_t* (*instantiate)(filesystem_t* self);
     void (*populate)(filesystem_t* self, vfs_node_t* node);
     vfs_node_t* (*mount)(filesystem_t* self, vfs_node_t* parent, const char* name, vfs_node_t* source);
     vfs_node_t* (*create_node)(filesystem_t* self, vfs_node_t* parent, const char* name, int mode);
@@ -41,11 +43,33 @@ typedef struct vfs_node_s {
     const char* symlink_target;
 } vfs_node_t;
 
+typedef struct {
+    vfs_node_t* parent;
+    vfs_node_t* current;
+    const char* basename;
+} path2node_return_t;
+
 void fs_init();
 vfs_node_t* vfs_create_node(filesystem_t* filesystem, vfs_node_t* parent, const char* name, bool dir);
-void vfs_add_child(int* num_children, vfs_node_t** children, vfs_node_t* new_child);
+void vfs_add_child(vfs_node_t* parent, vfs_node_t* new_child);
+void dir_create_dotentries(vfs_node_t* node, vfs_node_t* parent);
+path2node_return_t path2node(vfs_node_t* parent, const char* path);
+vfs_node_t* node_get_child(vfs_node_t* node, const char* child_name);
+
+bool fs_mount(vfs_node_t* parent, const char* source, const char* target, hpr_fsid_t fs_identifier);
+vfs_node_t* fs_create(vfs_node_t* parent, const char* name, int mode);
+
+static inline const char* fs_name(hpr_fsid_t fsid)
+{
+    switch(fsid)
+    {
+        case FS_TMPFS: return "tmpfs";
+        case FS_DEVTMPFS: return "devtmpfs";
+        case FS_EXT2: return "ext2";
+    }
+}
 
 // todo: extern these?
 // extern lock_t vfs_lock;
-// extern vfs_node_t* vfs_root;
+extern vfs_node_t* vfs_root;
 extern filesystem_t** filesystems;

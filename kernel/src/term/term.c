@@ -56,16 +56,6 @@ void term_write(const char *string, size_t count)
 
 void term_putc(const char c) { term_write(&c, 1); }
 
-// todo: move this to string.h/string.c
-// unsafe strlen function, counts until it hits a NULL byte with no limit
-// enforced
-size_t strlen(const char *str)
-{
-    const char *s = str;
-    while (*(s++))
-        ;
-    return s - str;
-}
 
 void term_vprintf(const char* fmt, va_list args)
 {
@@ -73,6 +63,9 @@ void term_vprintf(const char* fmt, va_list args)
     char buf[256] = {0};
     vsnprintf(buf, 256, fmt, args);
     term_write(buf, 256);
+    // ensure newline is printed
+    if(buf[strlen(buf)-1] != '\n')
+        term_putc('\n');
     lock_release(&term_lock);
 }
 

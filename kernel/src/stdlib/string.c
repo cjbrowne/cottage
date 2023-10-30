@@ -89,3 +89,16 @@ int memcmp(const void *s1, const void *s2, size_t n)
 
     return 0;
 }
+
+int strncmp(const char* s1, const char* s2, size_t n) 
+{
+    return memcmp((void*)s1, (void*)s2, n);
+}
+
+// unsafe strlen function, counts until it hits a NULL byte with no limit
+size_t strlen(const char *str)
+{
+    const char *s = str;
+    while(*s) s++;
+    return s - str;
+}

@@ -31,3 +31,4 @@ typedef struct {
 
 bool stat_is_dir(int mode);
 bool stat_is_reg(int mode);
+bool stat_is_lnk(int mode);

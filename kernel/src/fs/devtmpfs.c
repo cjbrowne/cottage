@@ -8,7 +8,7 @@ uint64_t devtmpfs_dev_id = 0;
 uint64_t devtmpfs_inode_counter = 0;
 vfs_node_t* devtmpfs_root = NULL;
 
-filesystem_t* devtmpfs_init()
+filesystem_t* devtmpfs_create()
 {
     devtmpfs_t* ret = malloc(sizeof (devtmpfs_t));
     ret->filesystem.instantiate = devtmpfs_init;
@@ -19,6 +19,11 @@ filesystem_t* devtmpfs_init()
     ret->filesystem.link = devtmpfs_link;
     ret->filesystem.close = devtmpfs_close;
     return (filesystem_t*)ret;
+}
+
+filesystem_t* devtmpfs_init(filesystem_t* self)
+{
+    return self;
 }
 
 void devtmpfs_populate(__attribute__((unused)) filesystem_t* self, __attribute__((unused)) vfs_node_t* node)
@@ -134,5 +139,5 @@ void devtmpfs_add_device(resource_t* device, const char* name)
     new_node->resource->stat.created_time = realtime_clock;
     new_node->resource->stat.modified_time = realtime_clock;
 
-    vfs_add_child(&devtmpfs_root->children_count, &devtmpfs_root->children, new_node);
+    vfs_add_child(devtmpfs_root, new_node);
 }

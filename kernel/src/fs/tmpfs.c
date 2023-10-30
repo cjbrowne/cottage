@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 
-filesystem_t* tmpfs_init()
+filesystem_t* tmpfs_create()
 {
     tmpfs_t* ret = malloc(sizeof (tmpfs_t));
     ret->filesystem.instantiate = tmpfs_init;
@@ -18,6 +18,11 @@ filesystem_t* tmpfs_init()
     ret->filesystem.link = tmpfs_link;
     ret->filesystem.close = tmpfs_close;
     return (filesystem_t*)ret;
+}
+
+filesystem_t* tmpfs_init(filesystem_t* self)
+{
+    return self;
 }
 
 void tmpfs_close(__attribute__((unused)) filesystem_t* self)

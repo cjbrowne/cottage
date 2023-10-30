@@ -16,7 +16,8 @@ typedef struct {
     size_t capacity;
 } tmpfs_resource_t;
 
-filesystem_t* tmpfs_init();
+filesystem_t* tmpfs_create();
+filesystem_t* tmpfs_init(filesystem_t* self);
 void tmpfs_populate(filesystem_t* self, vfs_node_t* node);
 vfs_node_t* tmpfs_mount(filesystem_t* self, vfs_node_t* parent, const char* name, vfs_node_t* source);
 vfs_node_t* tmpfs_create_node(filesystem_t* self, vfs_node_t* parent, const char* name, int mode);
