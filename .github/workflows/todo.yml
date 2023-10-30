@@ -17,5 +17,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Todo to Issue
         uses: alstr/todo-to-issue-action@v4
+        env:
+          MANUAL_COMMIT_REF: ${{ inputs.MANUAL_COMMIT_REF }}
+          MANUAL_BASE_REF: ${{ inputs.MANUAL_BASE_REF }}
         with:
           CLOSE_ISSUES: false
