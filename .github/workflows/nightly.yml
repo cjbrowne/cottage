@@ -1,0 +1,28 @@
+# nightly builds
+on:
+  schedule:
+
+    - cron: "0 3 * * *"
+jobs:
+  build-iso:
+    name: build ISO image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Build ISO
+        run: $GITHUB_WORKSPACE/build.sh
+      - name: Rename ISO
+        run: mv hopper.iso hopper-nightly-$(date +'%Y%m%d').iso
+      - name: Create nightly release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Nightly build ${{ env.TAG_DATE }}
+          tag_name: nightly-${{ env.TAG_DATE }}
+          body: A somewhat stable version of Hopper
+          files: |
+            hopper-nightly-*.iso
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
