@@ -14,6 +14,10 @@ jobs:
           submodules: true
       - name: Build ISO
         run: $GITHUB_WORKSPACE/build.sh
+      - name: Set TAG_DATE variable
+        run: echo "TAG_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+      - name: Tag new nightly release
+        run: git tag nightly-$TAG_DATE && git push --tags
       - name: Rename ISO
         run: mv hopper.iso hopper-nightly-$(date +'%Y%m%d').iso
       - name: Create nightly release

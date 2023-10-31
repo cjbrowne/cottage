@@ -24,6 +24,7 @@
 #include <futex/futex.h>
 #include <fs/fs.h>
 #include <initramfs/initramfs.h>
+#include <streams/streams.h>
 
 // hardware-specific stuff 
 // todo: move this shit behind HAL and/or into modules
@@ -283,6 +284,9 @@ void kmain_thread(void* arg)
     initramfs_init(module_request.response);
     klog("main", "initramfs loaded");
 
+    klog("main", "Loading streams");
+    streams_init();
+    klog("main", "Streams loaded");
 
     scheduler_dequeue_and_die();
 }
