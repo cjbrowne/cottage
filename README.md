@@ -1,3 +1,10 @@
+<!-- todo: add screenshot -->
+
+[![Discord](https://img.shields.io/discord/1168975846774681641)](https://discord.gg/g56RMyySgt)
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/cjbrowne/hopper/nightly.yml)
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/cjbrowne/hopper/develop)
+![GitHub all releases](https://img.shields.io/github/downloads/cjbrowne/hopper/total)
+
 # Hopper
 
 Hopper is an experimental operating system which features a kernel-space web 
