@@ -93,6 +93,40 @@ static inline bool cpu_interrupt_state()
     return (f & (1 << 9)) != 0;
 }
 
+static inline uint64_t cpu_rdtsc()
+{
+    uint32_t a = 0;
+    uint32_t d = 0;
+    asm volatile(
+        "rdtsc"
+        :   "=a" (a),
+            "=d" (d)
+    );
+    return (uint64_t)a | ((uint64_t)d << 32);
+}
+
+static inline uint32_t cpu_rdseed32()
+{
+    uint32_t a = 0;
+    asm volatile ("rdseed %%eax" : "=a" (a));
+    return a;
+}
+
+static inline uint32_t cpu_rdrand32()
+{
+    uint32_t a = 0;
+    asm volatile ("rdrand %%eax" : "=a" (a));
+    return a;
+}
+
+static inline uint64_t cpu_rdrand64()
+{
+    uint64_t a = 0;
+    asm volatile ("rdrand %%rax" : "=a" (a));
+    return a;
+}
+
+
 extern uint64_t fpu_storage_size;
 // function pointers
 extern fpuSaveFn fpu_save;
