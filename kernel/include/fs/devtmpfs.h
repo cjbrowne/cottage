@@ -22,3 +22,5 @@ vfs_node_t* devtmpfs_create_node(filesystem_t* self, vfs_node_t* parent, const c
 vfs_node_t* devtmpfs_symlink(filesystem_t* self, vfs_node_t* parent, const char* dest, const char* target);
 vfs_node_t* devtmpfs_link(filesystem_t* self, vfs_node_t* parent, const char* dest, vfs_node_t* target);
 void devtmpfs_close(filesystem_t* self);
+
+void devtmpfs_add_device(resource_t* device, const char* name);

@@ -25,6 +25,7 @@
 #include <fs/fs.h>
 #include <initramfs/initramfs.h>
 #include <streams/streams.h>
+#include <random/random.h>
 
 // hardware-specific stuff 
 // todo: move this shit behind HAL and/or into modules
@@ -284,9 +285,13 @@ void kmain_thread(void* arg)
     initramfs_init(module_request.response);
     klog("main", "initramfs loaded");
 
-    klog("main", "Loading streams");
+    klog("main", "Creating streaming devices /dev/null, /dev/full, /dev/zero");
     streams_init();
-    klog("main", "Streams loaded");
+    klog("main", "Streaming devices created");
+
+    klog("main", "Initializing /dev/random");
+    random_init();
+    klog("main", "/dev/random initialized");
 
     scheduler_dequeue_and_die();
 }
