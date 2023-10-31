@@ -23,6 +23,7 @@
 #include <pipe/pipe.h>
 #include <futex/futex.h>
 #include <fs/fs.h>
+#include <initramfs/initramfs.h>
 
 // hardware-specific stuff 
 // todo: move this shit behind HAL and/or into modules
@@ -79,6 +80,11 @@ static volatile struct limine_smp_request smp_request = {
 
 static volatile struct limine_boot_time_request boottime_request = {
     .id = LIMINE_BOOT_TIME_REQUEST,
+    .revision = 0,
+};
+
+static volatile struct limine_module_request module_request = {
+    .id = LIMINE_MODULE_REQUEST,
     .revision = 0,
 };
 
@@ -272,6 +278,10 @@ void kmain_thread(void* arg)
     {
         panic("Could not mount devtmpfs filesystem");
     }
+
+    klog("main", "Loading initramfs");
+    initramfs_init(module_request.response);
+    klog("main", "initramfs loaded");
 
 
     scheduler_dequeue_and_die();

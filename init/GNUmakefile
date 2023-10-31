@@ -1,9 +1,9 @@
 # Nuke built-in rules and variables.
 override MAKEFLAGS += -rR
 
-# This is the name that our final kernel executable will have.
+# This is the name that our final initramfs archive will have.
 # Change as needed.
-override KERNEL := kernel
+override INITRAMFS_ARCHIVE := initramfs.tar
 
 # Convenience macro to reliably declare user overridable variables.
 define DEFAULT_VAR =
@@ -21,15 +21,15 @@ endef
 override DEFAULT_CC := cc
 $(eval $(call DEFAULT_VAR,CC,$(DEFAULT_CC)))
 
-# Same thing for "ld" (the linker).
-override DEFAULT_LD := ld
+# Use cc as the linker so that it can correctly call its own linker
+override DEFAULT_LD := cc
 $(eval $(call DEFAULT_VAR,LD,$(DEFAULT_LD)))
 
 # User controllable C flags.
 # -Wno-address-of-packed-member is added because GCC is a bit overzealous about emitting this warning
 # and will emit it even when the structure does have good alignment on the target platform.
 # I don't like turning warnings off, but GCC have kind of forced my hand here...
-override DEFAULT_CFLAGS := -g -O2 -pipe -Werror -Wno-address-of-packed-member -Isrc/lai/include
+override DEFAULT_CFLAGS := -g -O2 -pipe -Werror 
 $(eval $(call DEFAULT_VAR,CFLAGS,$(DEFAULT_CFLAGS)))
 
 # User controllable C preprocessor flags. We set none by default.
@@ -46,43 +46,18 @@ $(eval $(call DEFAULT_VAR,LDFLAGS,$(DEFAULT_LDFLAGS)))
 
 # Internal C flags that should not be changed by the user.
 override CFLAGS += \
-	-Iinclude \
     -Wall \
     -Wextra \
-    -Wreturn-type \
     -std=gnu11 \
-    -ffreestanding \
-    -fno-stack-protector \
-    -fno-stack-check \
-    -fno-lto \
-    -fPIE \
-    -m64 \
-    -march=x86-64 \
-    -mno-80387 \
-    -mno-mmx \
-    -mno-sse \
-    -mno-sse2 \
-    -mno-red-zone
+    -march=x86-64
 
 # Internal C preprocessor flags that should not be changed by the user.
 override CPPFLAGS := \
-	-I include \
-    -I src \
-    $(CPPFLAGS) \
-    -MMD \
-    -MP
+    $(CPPFLAGS)
 
 # Internal linker flags that should not be changed by the user.
 override LDFLAGS += \
-    -m elf_x86_64 \
-    -Map bin/kernel.map \
-    -nostdlib \
-    -static \
-    -pie \
-    --no-dynamic-linker \
-    -z text \
-    -z max-page-size=0x1000 \
-    -T linker.ld
+    -Wl,"-melf_x86_64"
 
 # Internal nasm flags that should not be changed by the user.
 override NASMFLAGS += \
@@ -99,26 +74,27 @@ override HEADER_DEPS := $(addprefix obj/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
 
 # Default target.
 .PHONY: all
-all: bin/$(KERNEL)
+all: bin/$(INITRAMFS_ARCHIVE)
 
-src/limine.h:
-	curl -Lo $@ https://github.com/limine-bootloader/limine/raw/trunk/limine.h
-
-# Link rules for the final kernel executable.
-bin/$(KERNEL): GNUmakefile linker.ld $(OBJ)
+# Make the initramfs archive 
+bin/$(INITRAMFS_ARCHIVE): sysroot/bin/init
 	mkdir -p "$$(dirname $@)"
-	$(LD) $(OBJ) $(LDFLAGS) -o $@
+	cd sysroot/ && tar cf ../bin/$(INITRAMFS_ARCHIVE) *
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
 
+sysroot/bin/init: GNUmakefile $(OBJ) 
+	mkdir -p "$$(dirname $@)"
+	$(LD) $(OBJ) $(LDFLAGS) -o $@
+
 # Compilation rules for *.c files.
-obj/%.c.o: src/%.c GNUmakefile src/limine.h
+obj/%.c.o: src/%.c GNUmakefile 
 	mkdir -p "$$(dirname $@)"
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.S files.
-obj/%.S.o: src/%.S GNUmakefile src/limine.h
+obj/%.S.o: src/%.S GNUmakefile 
 	mkdir -p "$$(dirname $@)"
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
@@ -130,8 +106,4 @@ obj/%.asm.o: src/%.asm GNUmakefile
 # Remove object files and the final executable.
 .PHONY: clean
 clean:
-	rm -rf bin obj
-
-.PHONY: distclean
-distclean: clean
-	rm -f src/limine.h
+	rm -rf bin obj sysroot/bin/$(INITRAMFS_ARCHIVE)

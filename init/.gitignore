@@ -1,0 +1,5 @@
+bin/
+obj/
+
+# ignore binary files in the sysroot directory
+sysroot/bin/*

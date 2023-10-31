@@ -33,7 +33,7 @@ typedef struct vfs_node_s {
     vfs_node_t* redir;
     resource_t* resource;
     filesystem_t* filesystem;
-    const char* name;
+    char* name;
     vfs_node_t* parent;
     vfs_node_t* children;
 
@@ -46,7 +46,7 @@ typedef struct vfs_node_s {
 typedef struct {
     vfs_node_t* parent;
     vfs_node_t* current;
-    const char* basename;
+    char* basename;
 } path2node_return_t;
 
 void fs_init();
@@ -58,6 +58,7 @@ vfs_node_t* node_get_child(vfs_node_t* node, const char* child_name);
 
 bool fs_mount(vfs_node_t* parent, const char* source, const char* target, hpr_fsid_t fs_identifier);
 vfs_node_t* fs_create(vfs_node_t* parent, const char* name, int mode);
+vfs_node_t* fs_symlink(vfs_node_t* parent, const char* dest, const char* target);
 
 static inline const char* fs_name(hpr_fsid_t fsid)
 {

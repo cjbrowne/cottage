@@ -25,3 +25,12 @@ vfs_node_t* tmpfs_symlink(filesystem_t* self, vfs_node_t* parent, const char* de
 vfs_node_t* tmpfs_link(filesystem_t* self, vfs_node_t* parent, const char* dest, vfs_node_t* target);
 void tmpfs_close(filesystem_t* self);
 
+bool tmpfs_resource_grow(resource_t* self, void* handle, uint64_t size);
+int64_t tmpfs_resource_read(resource_t* self, void* handle, void* buf, uint64_t loc, uint64_t count);
+int64_t tmpfs_resource_write(resource_t* self, void* handle, void* buf, uint64_t loc, uint64_t count);
+int tmpfs_resource_ioctl(resource_t* self, void* handle, uint64_t request, void* argp);
+bool tmpfs_resource_unref(resource_t* self, void* handle);
+bool tmpfs_resource_link(resource_t* self, void* handle);
+bool tmpfs_resource_unlink(resource_t* self, void* handle);
+void* tmpfs_resource_mmap(resource_t* self, uint64_t page, int flags);
+
