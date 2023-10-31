@@ -81,10 +81,14 @@ limine:
 kernel:
 	$(MAKE) -C kernel
 
-$(IMAGE_NAME).iso: limine kernel
+.PHONY: init
+init:
+	$(MAKE) -C init
+
+$(IMAGE_NAME).iso: limine kernel init
 	rm -rf iso_root
 	mkdir -p iso_root
-	cp -v kernel/bin/kernel \
+	cp -v kernel/bin/kernel init/bin/initramfs.tar \
 		limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin iso_root/
 	mkdir -p iso_root/EFI/BOOT
 	cp -v limine/BOOTX64.EFI iso_root/EFI/BOOT/
@@ -97,7 +101,7 @@ $(IMAGE_NAME).iso: limine kernel
 	./limine/limine bios-install $(IMAGE_NAME).iso
 	rm -rf iso_root
 
-$(IMAGE_NAME).hdd: limine kernel
+$(IMAGE_NAME).hdd: limine kernel init
 	rm -f $(IMAGE_NAME).hdd
 	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
 	sgdisk $(IMAGE_NAME).hdd -n 1:2048 -t 1:ef00

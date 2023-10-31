@@ -15,3 +15,12 @@ When we want to release develop -> master, we will freeze accepting PRs into dev
 Releases are considered to be "generally" stable - that is, you should have a working ISO image that boots if you download the latest nightly release.  
 
 All you have to do to make a release is merge down develop -> master, and wait for the nightly build.
+
+# Memory management
+
+A few conventions help us keep the memory management more or less sane.
+
+First: any pointer that forms part or all of a return value from a function must always point to heap-allocated memory, or NULL.  It must never point to static allocated (e.g string literal) or stack-allocated memory.  In other words it should always be safe to call "free" on the pointer.
+
+Second: when constructing a structure that contains a string pointer (i.e char*), you *must* copy the string into the structure and allocate your own memory for it.  This memory should then be freed up whenever
+the structure's lifetime ends.  Non-string pointers should not use these semantics.  This helps prevent issues when cleaning up structures, that you don't know if the strings are heap-allocated or not.

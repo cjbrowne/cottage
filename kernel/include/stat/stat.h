@@ -17,7 +17,7 @@ typedef struct {
     uint64_t device;
     uint64_t inode;
     int mode;
-    int nlink;
+    _Atomic int nlink;
     int uid;
     int gid;
     uint64_t rdev;

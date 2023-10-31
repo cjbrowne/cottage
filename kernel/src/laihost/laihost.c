@@ -206,7 +206,6 @@ uint32_t laihost_pci_readd(__attribute__((unused)) uint16_t seg, uint8_t bus, ui
     return pci_readd(bus, slot, fun, offset);
 }
 
-// TODO: implement laihost_timer / laihost_sleep functions (ugh)
 void laihost_sleep(uint64_t ms)
 {
     sleep(ms);

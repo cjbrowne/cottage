@@ -10,4 +10,3 @@
 #define RESERVE_BITS(x) uint64_t :x
 #define RESERVE_BYTES(x) RESERVE_BITS(x * 8)
 
-
