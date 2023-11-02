@@ -165,9 +165,15 @@ path2node_return_t path2node(vfs_node_t* parent, const char* path)
         }
 
         bool last = index == strlen(path);
+        // handle paths with trailing / -- this is still the last element,
+        // but we expect it to be a directory.
+        // (we should maybe error if it's not a directory?)
+        if (!last && index == strlen(path) - 1 && path[index] == '/')
+        {
+            last = true;
+        }
 
         current_node = reduce_node(current_node, false);
-
 
         vfs_node_t* new_node = node_get_child(current_node, path_elem);
         if(new_node == NULL)
