@@ -5,6 +5,8 @@
 #include <elf/elf.h>
 #include <scheduler/scheduler.h>
 #include <file/file.h>
+#include <debug/debug.h>
+#include <klog/klog.h>
 
 // standard headers
 #include <string.h>
@@ -34,13 +36,12 @@ process_t* userland_start_program(
     size_t recursion_depth)
 {
     vfs_node_t* prog_node = fs_get_node(cwd, path, true);
-    resource_t* prog = prog_node->resource;
     if(prog_node == NULL)
     {
         // todo: error handling - we need to work out how to handle programs failing to load
         return NULL;
     }
-
+    resource_t* prog = prog_node->resource;
 	// create a new, blank pagemap
     pagemap_t* pagemap = malloc(sizeof(pagemap_t));
     * pagemap = new_pagemap();

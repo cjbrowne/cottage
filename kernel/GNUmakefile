@@ -64,6 +64,12 @@ override CFLAGS += \
     -mno-sse2 \
     -mno-red-zone
 
+ifdef COTTAGE_DEBUG
+    override CFLAGS += -DCOTTAGE_DEBUG
+endif
+
+
+
 # Internal C preprocessor flags that should not be changed by the user.
 override CPPFLAGS := \
 	-I include \

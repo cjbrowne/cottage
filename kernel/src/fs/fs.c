@@ -96,6 +96,11 @@ vfs_node_t* reduce_node(vfs_node_t* node, bool follow_symlinks)
 // not split it! (this behaviour may change in future versions)
 vfs_node_t* node_get_child(vfs_node_t* node, const char* child_name)
 {
+    klog("fs", "node_get_child node=%x child_name=%s children=%d",
+        node,
+        child_name,
+        node->children_count
+    );
     // very simple implementation so we just do a linear search,
     // in future versions we may implement some kind of hash table for node
     // children, to speed things up when we're looking through large directories
@@ -341,6 +346,7 @@ void dir_create_dotentries(vfs_node_t* node, vfs_node_t* parent)
 vfs_node_t* fs_get_node(vfs_node_t* parent, const char* path, bool follow_symlinks)
 {
     path2node_return_t ret = path2node(parent, path);
+    klog("fs", "path2node ret.current=%x ret.parent=%x ret.basename=%s", ret.current, ret.parent, ret.basename);
     free(ret.basename); // not used
     if(ret.current == NULL) return NULL;
     if (follow_symlinks)

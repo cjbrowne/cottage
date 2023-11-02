@@ -77,9 +77,16 @@ limine:
 		LDFLAGS="$(HOST_LDFLAGS)" \
 		LIBS="$(HOST_LIBS)"
 
+ifdef COTTAGE_DEBUG
+KERNEL_MAKEFLAGS := COTTAGE_DEBUG=1
+else
+KERNEL_MAKEFLAGS :=
+endif
+
+
 .PHONY: kernel
 kernel:
-	$(MAKE) -C kernel
+	$(MAKE) -C kernel $(KERNEL_MAKEFLAGS)
 
 .PHONY: init
 init:
