@@ -1,3 +1,4 @@
+#include <elf/elf.h>
 #include <scheduler/scheduler.h>
 #include <stdint.h>
 #include <interrupt/idt.h>
@@ -5,6 +6,7 @@
 #include <mem/malloc.h>
 #include <mem/vmm.h>
 #include <mem/pmm.h>
+#include <mem/mmap.h>
 #include <cpu/smp.h>
 #include <cpu/cpu.h>
 #include <mem/align.h>
@@ -12,6 +14,7 @@
 #include <interrupt/apic.h>
 #include <string.h>
 #include <debug/debug.h>
+#include <fs/fs.h>
 
 // use 2MB stack, similar to Linux
 #define STACK_SIZE (uint64_t)(0x200000)
@@ -358,6 +361,246 @@ thread_t *new_kernel_thread(void *ip, void *arg, bool autoenqueue)
             panic("Kernel could not enqueue a thread, did we hit MAX_THREADS for kernel threads?");
         }
     }
+
+    return t;
+}
+
+process_t* scheduler_new_process(process_t* old_process, pagemap_t* pagemap)
+{
+    process_t* new_process = malloc(sizeof(process_t));
+    new_process->pagemap = 0;
+
+    new_process->pid = proc_allocate_pid(new_process);
+    
+    if (old_process != NULL)
+    {
+        new_process->parent_pid = old_process->pid;
+        new_process->pagemap = mmap_fork_pagemap(old_process->pagemap);
+        new_process->thread_stack_top = old_process->thread_stack_top;
+        new_process->mmap_anon_non_fixed_base = old_process->mmap_anon_non_fixed_base;
+        new_process->cwd = old_process->cwd;
+    } else {
+        new_process->parent_pid = 0;
+        new_process->pagemap = pagemap;
+        new_process->thread_stack_top = PROC_DEFAULT_THREAD_STACK_TOP;
+        new_process->mmap_anon_non_fixed_base = PROC_DEFAULT_MMAP_ANON_NON_FIXED_BASE;
+        new_process->cwd = vfs_root;
+    }
+
+    return new_process;
+}
+
+thread_t* new_user_thread(
+    process_t* process,
+    bool want_elf,
+    void* pc,
+    void* arg,
+    uint64_t requested_stack,
+    int argc,
+    const char* argv[],
+    int envc,
+    const char* envp[],
+    elf_info_t elf_info,
+    bool autoenqueue
+)
+{
+    uint64_t* stack = NULL;
+    // virtual memory address
+    uint64_t stack_vma = 0;
+
+    void* stacks[PROC_MAX_STACKS_PER_THREAD];
+    size_t stack_count = 0;
+
+    if (requested_stack == 0)
+    {
+        void* stack_phys = pmm_alloc(STACK_SIZE / PAGE_SIZE);
+        stack = (void*)(uint64_t)stack_phys + STACK_SIZE + HIGHER_HALF;
+        stack_vma = process->thread_stack_top;
+        process->thread_stack_top -= STACK_SIZE;
+        uint64_t stack_bottom_vma = process->thread_stack_top;
+        process->thread_stack_top -= PAGE_SIZE;
+
+        if(!mmap_map_range(process->pagemap, stack_bottom_vma, (uint64_t)stack_phys, STACK_SIZE,
+            MMAP_PROT_READ | MMAP_PROT_WRITE, MMAP_MAP_ANON
+        ))
+        {
+            return NULL;
+        }
+    } else {
+        stack = (uint64_t*)(void*)requested_stack;
+        stack_vma = requested_stack;
+    }
+
+    void* kernel_stack_phys = pmm_alloc(STACK_SIZE / PAGE_SIZE);
+    stacks[stack_count++] = kernel_stack_phys;
+    uint64_t kernel_stack = (uint64_t)kernel_stack_phys + STACK_SIZE + HIGHER_HALF;
+
+    void* pf_stack_phys = pmm_alloc(STACK_SIZE / PAGE_SIZE);
+    stacks[stack_count++] = pf_stack_phys;
+    uint64_t pf_stack = (uint64_t)pf_stack_phys + STACK_SIZE + HIGHER_HALF;
+    
+    cpu_status_t cpu_status = (cpu_status_t){
+        .cs = USER_CODE_SEGMENT,
+        .ds = USER_DATA_SEGMENT,
+        .es = USER_DATA_SEGMENT,
+        .ss = USER_DATA_SEGMENT,
+        .rflags = 0x202,
+        .rip = (uint64_t)pc,
+        .rdi = (uint64_t)arg,
+        .rsp = (uint64_t)stack_vma
+    };
+
+    thread_t* t = malloc(sizeof(thread_t));
+    *t = (thread_t){
+        .process = process,
+        .cr3 = (uint64_t)process->pagemap->top_level,
+        .cpu_state = cpu_status,
+        .timeslice = 5000,
+        .cpuid = -1,
+        .kernel_stack = kernel_stack,
+        .pf_stack = pf_stack,
+        .stacks = {stacks}, // <-- this seems sus to me...
+        .fpu_storage = (void*)(uint64_t)(pmm_alloc(div_roundup(fpu_storage_size, PAGE_SIZE)) + HIGHER_HALF)
+    };
+
+    t->self = t;
+    t->gs_base = 0;
+    t->fs_base = 0;
+
+    fpu_restore(t->fpu_storage);
+
+    // reference: https://www.felixcloutier.com/x86/fldcw
+    // this instruction loads the operand into the FPU control word,
+    // which is used to put the FPU into a special mode:
+    // reference for the bit layout: http://web.archive.org/web/20190506231051/https://software.intel.com/en-us/articles/x87-and-sse-floating-point-assists-in-ia-32-flush-to-zero-ftz-and-denormals-are-zero-daz/
+    // we want to mask the following exceptions:
+    //      - invalid operand
+    //      - denormal operand
+    //      - divide by zero
+    //      - overflow
+    //      - underflow
+    //      - precision
+    //  (basically, all exceptions get masked)
+    // bits 6 and 7 are unused
+    // bits 8 and 9 refer to the precision control,
+    // and the upper bits for controlling infinity and rounding are left alone
+    uint16_t cw = 0b1100111111;
+    asm volatile (
+        "fldcw %0"
+        ::  "m" (cw) 
+        : "memory"
+    );
+
+	// references: 
+    // - https://www.felixcloutier.com/x86/ldmxcsr 
+    // - https://help.totalview.io/previous_releases/2019/html/index.html#page/Reference_Guide/Intelx86MXSCRRegister.html
+    // this instruction loads the operand into the MXCSR control/status register
+    // which is used for SSE operations.  The bitmask we send in is just to
+    // basically reset everything and mask all the exceptions.
+    uint32_t mxcsr = 0b1111110000000;
+    asm volatile (
+        "ldmxcsr %0"
+        :: "m" (mxcsr)
+        : "memory"
+    );
+
+    fpu_save(t->fpu_storage);
+
+    for(size_t i = 0; i < PROC_NUM_SIGACTIONS_PER_THREAD; i++)
+    {
+        // not sure why we use -2 as the pointer and not NULL,
+        // I'm porting bits of this from VINIX and that's what they did.
+        // reference: https://github.com/vlang/vinix/blob/465c4217be4110ad37fe1be400e9ea8a48ba9b1b/kernel/modules/sched/sched.v#L452C3-L452C32
+        t->sigactions[i].sa_sigaction = (void*)-2;
+    }
+
+    if(want_elf)
+    {
+        uint64_t* stack_top = stack;
+        uint64_t orig_stack_vma = stack_vma;
+
+        for (int i = 0; i < envc; i++)
+        {
+            // todo: potential major bug hiding in here, strlen probably not
+            //  safe and we're copying a byte from after the end of a string?
+            stack = stack - (strlen(envp[i]) + 1);
+            memcpy(stack, envp[i], strlen(envp[i]) + 1);
+        }
+        for (int i = 0; i < argc; i++)
+        {
+            // todo: potential major bug hiding in here, strlen probably not
+            //  safe and we're copying a byte from after the end of a string?
+            stack = stack - (strlen(argv[i]) + 1);
+            memcpy(stack, envp[i], strlen(argv[i]) + 1);
+        }
+
+		// re-align stack pointer to 16 bytes
+        if ((argc + envc + 1 & 1) != 0)
+        {
+            stack--;
+        }
+
+
+		// the last element on the stack is the aux vector as per POSIX:
+        // ref: https://www.gnu.org/software/libc/manual/html_node/Auxiliary-Vector.html
+        // we zero this out for the call into the entry function, it may be
+        // modified at runtime by the process but that's not up to us to control
+        // zero vector should be 16 bytes long 
+        stack[-1] = 0;
+        stack--;
+        stack[-1] = 0;
+        stack--;
+
+        // set up the aux table with info from the elf object we loaded
+        stack -= 2;
+        stack[0] = ELF_AT_ENTRY;
+        stack[1] = elf_info.entry;
+        stack -= 2;
+        stack[0] = ELF_AT_PHDR;
+        stack[1] = elf_info.prog_headers_ptr;
+        stack -= 2;
+        stack[0] = ELF_AT_PHENT;
+        stack[1] = elf_info.prog_header_entry_size;
+        stack -= 2;
+        stack[0] = ELF_AT_PHNUM;
+        stack[1] = elf_info.num_headers;
+
+		// pass through the environment table
+        stack--;
+        stack[0] = 0;
+        stack -= envc;
+        for(int i = 0; i < envc; i++)
+        {
+            orig_stack_vma -= strlen(envp[i]) + 1;
+            stack[i] = orig_stack_vma;
+        }
+
+        // pass through the args
+        stack--;
+        stack[0] = 0;
+        stack -= argc;
+        for(int i = 0; i < argc; i++)
+        {
+            orig_stack_vma -= strlen(argv[i]) + 1;
+            stack[i] = orig_stack_vma;
+        }
+
+        stack--;
+        stack[0] = argc;
+
+		// reduce the stack pointer by the number of elements we just pushed
+        t->cpu_state.rsp -= (stack_top - stack);
+    }
+
+    if (autoenqueue)
+    {
+        enqueue_thread(t, false);
+    }
+
+	// todo: bounds checking!
+    t->tid = process->thread_count;
+    process->threads[t->tid] = t;
+    process->thread_count++;
 
     return t;
 }

@@ -59,6 +59,7 @@ vfs_node_t* node_get_child(vfs_node_t* node, const char* child_name);
 bool fs_mount(vfs_node_t* parent, const char* source, const char* target, hpr_fsid_t fs_identifier);
 vfs_node_t* fs_create(vfs_node_t* parent, const char* name, int mode);
 vfs_node_t* fs_symlink(vfs_node_t* parent, const char* dest, const char* target);
+vfs_node_t* fs_get_node(vfs_node_t* parent, const char* path, bool follow_symlinks);
 
 static inline const char* fs_name(hpr_fsid_t fsid)
 {

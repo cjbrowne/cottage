@@ -337,3 +337,15 @@ void dir_create_dotentries(vfs_node_t* node, vfs_node_t* parent)
     vfs_add_child(node, dot);
     vfs_add_child(node, dotdot);
 }
+
+vfs_node_t* fs_get_node(vfs_node_t* parent, const char* path, bool follow_symlinks)
+{
+    path2node_return_t ret = path2node(parent, path);
+    free(ret.basename); // not used
+    if(ret.current == NULL) return NULL;
+    if (follow_symlinks)
+    {
+        return reduce_node(ret.current, true);
+    }
+    return ret.current;
+}

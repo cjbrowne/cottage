@@ -84,7 +84,7 @@ bin/$(INITRAMFS_ARCHIVE): sysroot/bin/init
 # Include header dependencies.
 -include $(HEADER_DEPS)
 
-sysroot/bin/init: GNUmakefile $(OBJ) 
+sysroot/sbin/init: GNUmakefile $(OBJ) 
 	mkdir -p "$$(dirname $@)"
 	$(LD) $(OBJ) $(LDFLAGS) -o $@
 

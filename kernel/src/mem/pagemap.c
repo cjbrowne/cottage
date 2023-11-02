@@ -1,9 +1,14 @@
+// first-party headers
 #include <mem/pagemap.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <mem/vmm.h>
 #include <mem/pmm.h>
+#include <mem/mmap.h>
 #include <panic.h>
+
+// standard headers
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 // tries to find <count> contiguous pages in the virtual memory space
 // if it is unable to, it will return 0
@@ -89,6 +94,17 @@ void switch_pagemap(pagemap_t* pagemap)
     );
 }
 
+bool virt2phys(pagemap_t* pagemap, uint64_t virt_addr, uint64_t* phys)
+{
+    uint64_t* pte_p = virt2pte(pagemap, virt_addr, false);
+    if((pte_p[0] & 1) == 0)
+        return false;
+    *phys = pte_p[0] & ~(uint64_t)0xfff;
+    return true;
+}
+
+// todo: make this take an uint64_t* argument as the last argument,
+// and return a bool (requires updating all call sites though)
 uint64_t* virt2pte(pagemap_t* pagemap, uint64_t virt_addr, bool allocate)
 {
     uint64_t pml4_entry = (virt_addr & (((uint64_t)0x1ff) << 39)) >> 39;
@@ -140,4 +156,51 @@ bool flag_page(pagemap_t* pagemap, uint64_t virt, uint64_t flags)
         invlpg(virt);
     }
     return true;
+}
+
+pagemap_t new_pagemap()
+{
+    uint64_t* top_level = pmm_alloc(1);
+    if (top_level == NULL)
+    {
+        panic("new_pagemap() allocation failure");
+    }
+
+	// import higher half from kernel pagemap
+    uint64_t* p1 = (uint64_t*)((uint64_t)top_level + HIGHER_HALF);
+    uint64_t* p2 = g_kernel_pagemap.top_level + HIGHER_HALF;
+
+    for(uint64_t i = 256; i < 512; i++)
+    {
+        p1[i] = p2[i];
+    }
+
+    return (pagemap_t){
+        .top_level = top_level,
+        .mmap_ranges = (void*[]){}
+    };
+}
+
+
+bool delete_pagemap(pagemap_t* pagemap)
+{
+    bool rv = true;
+    lock_acquire(&pagemap->lock);
+
+    for(size_t i = 0; i < pagemap->mmap_range_count; i++)
+    {
+        mmap_range_local_t* local_range = (mmap_range_local_t*) pagemap->mmap_ranges[i];
+
+        if(!munmap(pagemap, local_range->base, local_range->length))
+        {
+            rv = false;
+            break;
+        }
+
+    }
+
+    free(pagemap);
+	
+    lock_release(&pagemap->lock);
+    return rv;
 }

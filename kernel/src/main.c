@@ -26,6 +26,7 @@
 #include <initramfs/initramfs.h>
 #include <streams/streams.h>
 #include <random/random.h>
+#include <userland/userland.h>
 
 // hardware-specific stuff 
 // todo: move this shit behind HAL and/or into modules
@@ -292,6 +293,24 @@ void kmain_thread(void* arg)
     klog("main", "Initializing /dev/random");
     random_init();
     klog("main", "/dev/random initialized");
+
+    klog("main", "Initializing console");
+    // todo: write console_init
+    //console_init();
+    klog("main", "Console initialized");
+
+    userland_start_program(false, 
+        vfs_root,
+        "/sbin/init",
+        1,
+        (const char*[]){"/sbin/init"},
+        0,
+        (const char*[]){},
+        "/dev/console",
+        "/dev/console",
+        "/dev/console",
+        0
+    );
 
     scheduler_dequeue_and_die();
 }

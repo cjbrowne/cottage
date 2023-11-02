@@ -16,6 +16,9 @@ offer in terms of UI components.
 See [TODO](TODO.md) for how much of the vision has been implemented so far, it's
 meant as a rough "roadmap" of what I'm working on.
 
+If you want to watch live development happen, I am often in the discord streaming 
+live while I write code.  Feel free to pop in and say hi!
+
 # Running
 
 To run a downloaded ISO image using qemu, run the following command:

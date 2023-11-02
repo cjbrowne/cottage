@@ -5,6 +5,7 @@
 #include <panic.h>
 #include <mem/align.h>
 #include <mem/pmm.h>
+#include <mem/mmap.h>
 
 #include <stdlib.h>
 
