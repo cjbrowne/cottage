@@ -46,6 +46,7 @@ $(eval $(call DEFAULT_VAR,LDFLAGS,$(DEFAULT_LDFLAGS)))
 
 # Internal C flags that should not be changed by the user.
 override CFLAGS += \
+    -g \
 	-Iinclude \
     -Wall \
     -Wextra \
@@ -67,8 +68,6 @@ override CFLAGS += \
 ifdef COTTAGE_DEBUG
     override CFLAGS += -DCOTTAGE_DEBUG
 endif
-
-
 
 # Internal C preprocessor flags that should not be changed by the user.
 override CPPFLAGS := \

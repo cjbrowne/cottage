@@ -78,7 +78,16 @@ vfs_node_t* tmpfs_create_node(filesystem_t* _self, vfs_node_t* parent, const cha
     new_resource->resource.stat.accessed_time = realtime_clock;
     new_resource->resource.stat.created_time = realtime_clock;
     new_resource->resource.stat.modified_time = realtime_clock;
-    
+
+    new_resource->resource.grow  = tmpfs_resource_grow;
+    new_resource->resource.read  = tmpfs_resource_read;
+    new_resource->resource.write = tmpfs_resource_write;
+    new_resource->resource.ioctl = tmpfs_resource_ioctl;
+    new_resource->resource.unref = tmpfs_resource_unref;
+    new_resource->resource.link  = tmpfs_resource_link;
+    new_resource->resource.unlink= tmpfs_resource_unlink;
+    new_resource->resource.mmap  = tmpfs_resource_mmap;
+
     new_node->resource = (resource_t*)new_resource;
 
     return new_node;
