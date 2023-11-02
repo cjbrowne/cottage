@@ -134,6 +134,8 @@ void _start(void)
 
     TERM_WRITE_BUF("=== Cottage v0.0.1a (snapshot release) ===\n");
 
+    klog_debug("main", "Warning! This is a debug build.  If you do not know what you are doing, please download a release build instead.");
+
     klog("main", "Loading DTB");
     // Ensure we got a DTB
     if (dtb_request.response == NULL)

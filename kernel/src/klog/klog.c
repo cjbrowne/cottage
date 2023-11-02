@@ -118,6 +118,18 @@ void klog(const char *module, const char *fmt, ...)
     lock_release(&klog_lock);
 }
 
+#ifdef COTTAGE_DEBUG
+void klog_debug(const char* module, const char* fmt, ...)
+{
+    lock_acquire(&klog_lock);
+    va_list args;
+    va_start(args, fmt);
+    vklog(module, fmt, args);
+    va_end(args);
+    lock_release(&klog_lock);
+}
+#endif
+
 void klog_putc(char c)
 {
     klog_buf[log_end++] = c;
