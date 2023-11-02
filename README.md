@@ -1,5 +1,7 @@
 <!-- todo: add screenshot -->
 
+![cottage.png](./cottage.png)
+
 [![Discord](https://img.shields.io/discord/1168975846774681641)](https://discord.gg/g56RMyySgt)
 ![GitHub Workflow Status (with
 event)](https://img.shields.io/github/actions/workflow/status/cjbrowne/cottage/nightly.yml)
