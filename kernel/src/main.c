@@ -132,7 +132,7 @@ void _start(void)
             (framebuffer->bpp / 8)
             );
 
-    TERM_WRITE_BUF("=== Hopper v0.0.1a (snapshot release) ===\n");
+    TERM_WRITE_BUF("=== Cottage v0.0.1a (snapshot release) ===\n");
 
     klog("main", "Loading DTB");
     // Ensure we got a DTB
