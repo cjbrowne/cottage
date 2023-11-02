@@ -1,3 +1,10 @@
+<!-- todo: add screenshot -->
+
+[![Discord](https://img.shields.io/discord/1168975846774681641)](https://discord.gg/g56RMyySgt)
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/cjbrowne/hopper/nightly.yml)
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/cjbrowne/hopper/develop)
+![GitHub all releases](https://img.shields.io/github/downloads/cjbrowne/hopper/total)
+
 # Hopper
 
 Hopper is an experimental operating system which features a kernel-space web 
@@ -8,6 +15,9 @@ offer in terms of UI components.
 
 See [TODO](TODO.md) for how much of the vision has been implemented so far, it's
 meant as a rough "roadmap" of what I'm working on.
+
+If you want to watch live development happen, I am often in the discord streaming 
+live while I write code.  Feel free to pop in and say hi!
 
 # Running
 

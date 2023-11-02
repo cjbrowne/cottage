@@ -9,15 +9,6 @@
 
 #define HIGHER_HALF 0xFFFF800000000000
 
-// mmap flags
-#define MMAP_PROT_NONE   0x00
-#define MMAP_PROT_READ   0x01
-#define MMAP_PROT_WRITE  0x02
-#define MMAP_PROT_EXEC   0x04
-#define MMAP_MAP_PRIVATE 0x01
-#define MMAP_MAP_SHARED  0x02
-#define MMAP_MAP_FIXED   0x04
-#define MMAP_MAP_ANON    0x08
 
 void pmm_init(struct limine_memmap_response* memmap);
 

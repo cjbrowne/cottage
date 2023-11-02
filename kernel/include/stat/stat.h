@@ -3,6 +3,8 @@
 #include <time/timer.h>
 #include <stdint.h>
 
+#define STAT_DIRENT_NAME_LEN 1024
+
 #define STAT_IFMT   0xf000
 #define STAT_IFBLK  0x6000
 #define STAT_IFCHR  0x2000
@@ -28,6 +30,14 @@ typedef struct {
     uint64_t block_size;
     uint64_t blocks;
 } stat_t;
+
+typedef struct {
+    uint64_t inode;
+    uint64_t offset;
+    uint16_t reclen; // reclen?
+    uint8_t type;
+    uint8_t name[STAT_DIRENT_NAME_LEN];
+} stat_dirent_t;
 
 bool stat_is_dir(int mode);
 bool stat_is_reg(int mode);

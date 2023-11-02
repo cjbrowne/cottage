@@ -13,6 +13,14 @@
 #define PROC_MAX_FDS 256
 #define PROC_MAX_EVENTS 32
 #define PROC_TIMERS 4096
+
+// this kind of doesn't matter but if you keep it to a single byte,
+// it can allow some optimisations 
+#define PROC_NUM_SIGACTIONS_PER_THREAD 256
+
+// this is technically sort of arbitrary, to a point.  Just don't go crazy.
+#define PROC_MAX_PROCESSES 65536
+
 // be careful when tuning these two as they are multiplicative of one another.
 // 64 threads, 64 children = 4096+64 total threads per process
 #define PROC_MAX_THREADS_PER_PROCESS 64
@@ -21,6 +29,13 @@
 // some per-thread maximums
 #define PROC_MAX_STACKS_PER_THREAD 64
 #define PROC_MAX_SIGNAL_FDS_PER_THREAD 64
+
+// default placements of the thread stack top and MMAP anonymous non-fixed base
+// these are pretty much arbitrary, just have to make sure they don't collide
+// with either the kernel (HIGHER_HALF), or any other parts of the user process'
+// virtual memory space.
+#define PROC_DEFAULT_THREAD_STACK_TOP 0x70000000000
+#define PROC_DEFAULT_MMAP_ANON_NON_FIXED_BASE 0x80000000000
 
 typedef struct process_s process_t;
 typedef struct thread_s thread_t;
@@ -59,7 +74,7 @@ typedef struct thread_s {
     void* exit_value;
     event_t exited;
     uint64_t sigentry;
-    sig_action_t sigactions[256];
+    sig_action_t sigactions[PROC_NUM_SIGACTIONS_PER_THREAD];
     uint64_t pending_signals;
     uint64_t masked_signals;
     _Atomic bool enqueued_by_signal;
@@ -76,12 +91,13 @@ typedef struct process_s {
     pagemap_t* pagemap;
     uint64_t thread_stack_top;
     thread_t* threads[PROC_MAX_THREADS_PER_PROCESS];
+    size_t thread_count;
     lock_t fds_lock;
     void* fds[PROC_MAX_FDS];
     struct process_t* children[PROC_MAX_CHILD_PROCESSES];
     // anonymous mmap calls will place memory at this location
     uint64_t mmap_anon_non_fixed_base;
-    // todo: change to direntry* maybe?
+    // todo: change to vfs_node_t* maybe?
     void* cwd;
     event_t event;
     uint64_t status;
@@ -89,4 +105,8 @@ typedef struct process_s {
     char* name;
 } process_t;
 
+// global variables
+extern _Atomic(process_t*) processes[PROC_MAX_PROCESSES];
+
 thread_t* get_current_thread();
+uint64_t proc_allocate_pid(process_t* process);

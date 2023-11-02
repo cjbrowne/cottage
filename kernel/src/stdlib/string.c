@@ -3,6 +3,9 @@
 #include <klog/klog.h>
 #include <string.h>
 
+// this doesn't always exist in string.h, as it is a GNU extension
+void* mempcpy(void *dest, const void *src, size_t n);
+
 int strcmp(const char* s1, const char* s2)
 {
     size_t s1_len = strlen(s1);
@@ -28,14 +31,7 @@ int strcmp(const char* s1, const char* s2)
 
 void *memcpy(void *dest, const void *src, size_t n)
 {
-    uint8_t *pdest = (uint8_t *)dest;
-    const uint8_t *psrc = (const uint8_t *)src;
-
-    for (size_t i = 0; i < n; i++)
-    {
-        pdest[i] = psrc[i];
-    }
-
+    mempcpy(dest, src, n);
     return dest;
 }
 
@@ -101,4 +97,34 @@ size_t strlen(const char *str)
     const char *s = str;
     while(*s) s++;
     return s - str;
+}
+
+void* mempcpy(void *dest, const void *src, size_t n)
+{
+    uint8_t *pdest = (uint8_t *)dest;
+    const uint8_t *psrc = (const uint8_t *)src;
+
+    for (size_t i = 0; i < n; i++)
+    {
+        *pdest = *psrc;
+        pdest++;
+        psrc++;
+    }
+
+    return pdest;
+}
+
+char* stpcpy(char* restrict dest, const char* restrict src)
+{
+    char *p;
+    p = mempcpy(dest, src, strlen(src));
+    *p = '\0';
+
+    return p;
+}
+
+char* strcpy(char* restrict dest, const char* restrict src)
+{
+    stpcpy(dest, src);
+    return dest;
 }
