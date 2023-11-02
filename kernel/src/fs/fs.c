@@ -96,8 +96,9 @@ vfs_node_t* reduce_node(vfs_node_t* node, bool follow_symlinks)
 // not split it! (this behaviour may change in future versions)
 vfs_node_t* node_get_child(vfs_node_t* node, const char* child_name)
 {
-    klog("fs", "node_get_child node=%x child_name=%s children=%d",
+    klog("fs", "node_get_child node=%x (node->name=%s) child_name=%s children=%d",
         node,
+        node->name,
         child_name,
         node->children_count
     );
@@ -305,6 +306,8 @@ vfs_node_t* internal_create(vfs_node_t* parent, const char* name, int mode)
     vfs_node_t* target_node = ret.current;
     char* basename = ret.basename;
 
+    klog_debug("fs", "fs_create parent->name=%s name=%s mode=%o", parent->name, name, mode);
+
     if(target_node != NULL)
     {
         // todo: set errno EEXIST
@@ -351,8 +354,9 @@ void dir_create_dotentries(vfs_node_t* node, vfs_node_t* parent)
 
 vfs_node_t* fs_get_node(vfs_node_t* parent, const char* path, bool follow_symlinks)
 {
+    klog_debug("fs", "calling path2node with args: parent=%x path=%s, parent->name=%s", parent, path, parent->name);
     path2node_return_t ret = path2node(parent, path);
-    klog("fs", "path2node ret.current=%x ret.parent=%x ret.basename=%s", ret.current, ret.parent, ret.basename);
+    klog_debug("fs", "path2node returned ret.current=%x ret.parent=%x ret.basename=%s", ret.current, ret.parent, ret.basename);
     free(ret.basename); // not used
     if(ret.current == NULL) return NULL;
     if (follow_symlinks)

@@ -41,11 +41,16 @@ void dump_local_cpu(const local_cpu_t *cpu) {
     term_printf("  LAPIC ID: %x LAPIC Timer Freq: %x\n", cpu->lapic_id, cpu->lapic_timer_freq);
     term_printf("  Online: %x Is Idle: %d\n", cpu->online, cpu->is_idle);
     term_printf("  Last Run Queue Index: %ld\n", cpu->last_run_queue_index);
+    // don't put abort stacks in every build
+    // this may be removed later when panics are less frequent and the extra
+    // information is more useful and less of a distraction
+    #ifdef COTTAGE_DBG_INCLUDE_ABORT_STACK
     term_printf("  Abort Stack:\n");
     for (int i = 0; i < ABORT_STACK_SIZE; ++i) {
         term_printf("    %x\n", cpu->abort_stack[i]);
     }
     term_printf("  Aborted: %d\n", cpu->aborted);
+    #endif
 }
 
 __attribute__((noreturn)) void panic(const char *msg, ...)

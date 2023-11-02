@@ -1,3 +1,7 @@
+# usage: `source useful-aliases.sh`
+# a collection of stuff that's useful inside this project
+# to make the DX a bit more pleasant.
+
 PROJECT_ROOT=$(pwd)
 
 function create_module()

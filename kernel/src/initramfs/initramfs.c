@@ -55,6 +55,7 @@ void initramfs_init(struct limine_module_response* res)
         // this is not a USTar (Unix Standard TAR) header
         if(strncmp(current_header->signature, "ustar", 5) != 0)
         {
+            klog_debug("initramfs", "header signature doesn't match! signature=%s", current_header->signature);
             break;
         }
         char name[USTAR_HEADER_NAME_LEN] = {0};
@@ -77,6 +78,8 @@ void initramfs_init(struct limine_module_response* res)
         {
             goto next;
         }
+
+		klog_debug("initramfs", "found file: filetype=%x name=%s size=%d", current_header->filetype, name, size);
 
         switch(current_header->filetype)
         {
@@ -140,10 +143,10 @@ void initramfs_init(struct limine_module_response* res)
 
 next:
 		// mark the memory that limine allocated for this file as free
-        pmm_free(current_header - HIGHER_HALF, (512 + align_up(size, 512))/PAGE_SIZE);
+        pmm_free(current_header - HIGHER_HALF, ((uint64_t)512 + align_up(size, 512))/PAGE_SIZE);
         // increment header by 1 page (header takes up 1 page) plus however many
         // pages this file took up
-        current_header += (512 + align_up(size, 512));
+        current_header = (ustarheader_t*)((size_t)current_header + ((size_t)512 + (size_t)align_up(size, 512)));
     }
     klog("init", "Initramfs loaded"); 
 }
