@@ -116,6 +116,7 @@ $(IMAGE_NAME).hdd: limine kernel init
 clean:
 	rm -rf iso_root $(IMAGE_NAME).iso $(IMAGE_NAME).hdd
 	$(MAKE) -C kernel clean
+	$(MAKE) -C init clean
 
 .PHONY: distclean
 distclean: clean
