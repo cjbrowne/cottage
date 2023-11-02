@@ -19,14 +19,14 @@ jobs:
       - name: Tag new nightly release
         run: git tag nightly-$TAG_DATE && git push --tags
       - name: Rename ISO
-        run: mv hopper.iso hopper-nightly-$(date +'%Y%m%d').iso
+        run: mv cottage.iso cottage-nightly-$(date +'%Y%m%d').iso
       - name: Create nightly release
         uses: softprops/action-gh-release@v1
         with:
           name: Nightly build ${{ env.TAG_DATE }}
           tag_name: nightly-${{ env.TAG_DATE }}
-          body: A somewhat stable version of Hopper
+          body: A somewhat stable version of Cottage
           files: |
-            hopper-nightly-*.iso
+            cottage-nightly-*.iso
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

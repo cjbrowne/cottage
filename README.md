@@ -1,13 +1,16 @@
 <!-- todo: add screenshot -->
 
 [![Discord](https://img.shields.io/discord/1168975846774681641)](https://discord.gg/g56RMyySgt)
-![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/cjbrowne/hopper/nightly.yml)
-![GitHub last commit (branch)](https://img.shields.io/github/last-commit/cjbrowne/hopper/develop)
-![GitHub all releases](https://img.shields.io/github/downloads/cjbrowne/hopper/total)
+![GitHub Workflow Status (with
+event)](https://img.shields.io/github/actions/workflow/status/cjbrowne/cottage/nightly.yml)
+![GitHub last commit
+(branch)](https://img.shields.io/github/last-commit/cjbrowne/cottage/develop)
+![GitHub all
+releases](https://img.shields.io/github/downloads/cjbrowne/cottage/total)
 
-# Hopper
+# Cottage
 
-Hopper is an experimental operating system which features a kernel-space web 
+Cottage is an experimental operating system which features a kernel-space web 
 server.  The goal is to create an OS whose userspace is created primarily using
 JavaScript running in a browser.  This simplifies application development
 dramatically, as application authors get access to everything a browser has to
@@ -16,14 +19,34 @@ offer in terms of UI components.
 See [TODO](TODO.md) for how much of the vision has been implemented so far, it's
 meant as a rough "roadmap" of what I'm working on.
 
-If you want to watch live development happen, I am often in the discord streaming 
-live while I write code.  Feel free to pop in and say hi!
+Cottage, as the name implies, is supposed to be my cozy digital home away from
+home.  The idea of the overall project is to inspire others to build their own
+digital homes and grow a little digital village, carving out a corner of the
+internet for likeminded digital misfits and miscreants.
+
+As it is *my* home, expect it not to be suitable for your purposes - however, feel free to look around and if you get inspired - fork this repo and make a cottage of your own!
+
+If you want to watch live development happen, I am often in the discord
+streaming live while I write code.  Feel free to pop in and say hi!
 
 # Running
 
+## Downloading
+
+Download from the "Releases" page on github.  The nightly release is the only
+version currently available.
+
+## Dependencies
+
+All that is _required_ is a BIOS that's capable of booting UEFI images, and a
+relatively modern X86_64 system.  
+
+## Running
+
 To run a downloaded ISO image using qemu, run the following command:
 
-`qemu-system-x86_64 -M q35 -m 2G -bios $(OVMF_IMAGE) -cdrom $(IMAGE_NAME).iso -boot d`
+`qemu-system-x86_64 -M q35 -m 2G -bios $(OVMF_IMAGE) -cdrom $(IMAGE_NAME).iso
+-boot d`
 
 The OVMF image is up to you to provide, but usually can be found at:
 
@@ -50,11 +73,12 @@ someone else's software (the browser, again, and the OS its running on) and
 letting that software do the heavy lifting of working out resolutions, bitmap
 depth, and all that fancy jazz.
 
-Clean, simple code that does the job and moves on is preferred over messy tangles.
+Clean, simple code that does the job and moves on is preferred over messy
+tangles.
 
 The kernel is modular by design, and the modules follow a linux-y model of 
-exposing (block) devices into the virtual filesystem, though neither ABI nor
-API compatibility with linux is a goal here.
+exposing (block) devices into the virtual filesystem, though neither ABI nor API
+compatibility with linux is a goal here.
 
 We also prefer to implement as much of the OS in kernel modules or userspace as
 possible, rather than implementing stuff directly into the kernel.  This is to 
