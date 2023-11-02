@@ -299,7 +299,7 @@ void kmain_thread(void* arg)
     //console_init();
     klog("main", "Console initialized");
 
-    userland_start_program(false, 
+    process_t* init_process = userland_start_program(false, 
         vfs_root,
         "/sbin/init",
         1,
@@ -311,6 +311,10 @@ void kmain_thread(void* arg)
         "/dev/console",
         0
     );
+    if(init_process == NULL)
+    {
+        panic("Could not start /sbin/init");
+    }
 
     scheduler_dequeue_and_die();
 }
