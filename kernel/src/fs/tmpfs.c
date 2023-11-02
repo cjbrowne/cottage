@@ -192,6 +192,7 @@ int64_t tmpfs_resource_read(resource_t* _self, __attribute__((unused)) void* han
     return actual_count;
 }
 
+// this whole function is sus
 int64_t tmpfs_resource_write(resource_t* _self, __attribute__((unused)) void* handle, void* buf, uint64_t loc, uint64_t count)
 {
     lock_acquire(&_self->lock);
@@ -218,7 +219,7 @@ int64_t tmpfs_resource_write(resource_t* _self, __attribute__((unused)) void* ha
         self->capacity = new_capacity;
     }
 
-    memcpy(&self->storage[loc], buf, count);
+    memcpy(self->storage + loc, buf, count);
 
     if (loc + count > _self->stat.size)
     {

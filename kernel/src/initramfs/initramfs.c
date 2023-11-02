@@ -91,7 +91,7 @@ void initramfs_init(struct limine_module_response* res)
                     panic("initramfs: failed to create file %s", name);
                 }
                 resource_t* resource = new_node->resource;
-                void* buf = current_header+512;
+                void* buf =(void*)(((uint64_t)current_header) + 512);
                 int64_t bytes_written = resource->write(resource, 0, buf, 0, size);
                 if(bytes_written <= 0)
                 {
@@ -142,8 +142,11 @@ void initramfs_init(struct limine_module_response* res)
         }
 
 next:
-		// mark the memory that limine allocated for this file as free
-        pmm_free(current_header - HIGHER_HALF, ((uint64_t)512 + align_up(size, 512))/PAGE_SIZE);
+        // todo: mark the memory that limine allocated for this file as free 
+		//  note that this is not as simple as just uncommenting the next line!
+        // we need to rewrite the pmm bitmap init code so that the region is
+        // counted.  I don't think it is currently counted...
+        // pmm_free(current_header - HIGHER_HALF, ((uint64_t)512 + align_up(size, 512))/PAGE_SIZE);
         // increment header by 1 page (header takes up 1 page) plus however many
         // pages this file took up
         current_header = (ustarheader_t*)((size_t)current_header + ((size_t)512 + (size_t)align_up(size, 512)));
