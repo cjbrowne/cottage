@@ -77,7 +77,7 @@ override HEADER_DEPS := $(addprefix obj/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
 all: bin/$(INITRAMFS_ARCHIVE)
 
 # Make the initramfs archive 
-bin/$(INITRAMFS_ARCHIVE): sysroot/bin/init
+bin/$(INITRAMFS_ARCHIVE): sysroot/sbin/init
 	mkdir -p "$$(dirname $@)"
 	cd sysroot/ && tar cf ../bin/$(INITRAMFS_ARCHIVE) *
 
@@ -106,4 +106,4 @@ obj/%.asm.o: src/%.asm GNUmakefile
 # Remove object files and the final executable.
 .PHONY: clean
 clean:
-	rm -rf bin obj sysroot/bin/$(INITRAMFS_ARCHIVE)
+	rm -rf bin obj sysroot/* bin/$(INITRAMFS_ARCHIVE)
