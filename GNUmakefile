@@ -45,7 +45,10 @@ all-hdd: $(IMAGE_NAME).hdd
 .PHONY: test
 test: run-uefi
 
-QEMU_FLAGS := -S -s -d cpu_reset -smp cpus=1 -M q35 -m 2G -serial stdio -action panic=none
+QEMU_FLAGS := -d cpu_reset -smp cpus=1 -M q35 -m 2G -serial stdio -action panic=none -enable-kvm
+
+# uncomment to start gdbserver and freeze on launch
+QEMU_FLAGS += -S -s
 
 .PHONY: run
 run: $(IMAGE_NAME).iso

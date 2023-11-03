@@ -19,7 +19,7 @@ bool elf_load(pagemap_t* pagemap, resource_t* resource, uint64_t base, elf_info_
         return false;
     }
     // check for magic header: 0x7F, 'E', 'L', 'F'
-    if(memcmp(&header.ident, "\0x7FELF", 4) != 0)
+    if(memcmp(&header.ident, "\177ELF", 4) != 0)
     {
         // not a valid ELF file
         return false;

@@ -46,7 +46,6 @@ $(eval $(call DEFAULT_VAR,LDFLAGS,$(DEFAULT_LDFLAGS)))
 
 # Internal C flags that should not be changed by the user.
 override CFLAGS += \
-    -g \
 	-Iinclude \
     -Wall \
     -Wextra \
@@ -63,7 +62,8 @@ override CFLAGS += \
     -mno-mmx \
     -mno-sse \
     -mno-sse2 \
-    -mno-red-zone
+    -mno-red-zone \
+    -g 
 
 ifdef COTTAGE_DEBUG
     override CFLAGS += -DCOTTAGE_DEBUG

@@ -47,7 +47,7 @@ process_t* userland_start_program(
     * pagemap = new_pagemap();
 
     char shebang[2] = {0};
-    prog->read(prog, NULL, &shebang[0], 0, 2); 
+    prog->read(prog, NULL, &shebang, 0, 2); 
     if (strncmp(shebang, "#!", 2) == 0) // loading a script
     {
         char interpreter[SHEBANG_MAX_INT_LEN] = {0};
