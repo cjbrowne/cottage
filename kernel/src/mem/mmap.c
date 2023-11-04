@@ -1,12 +1,16 @@
+// first-party headers
 #include <mem/pmm.h>
 #include <mem/vmm.h>
 #include <mem/mmap.h>
 #include <mem/align.h>
 #include <lock/lock.h>
 #include <panic.h>
+#include <errors/errno.h>
 
+// standard headers
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 bool mmap_map_page_in_range(mmap_range_global_t* global_range, uint64_t virt, uint64_t phys, uint64_t prot)
 {
@@ -99,7 +103,7 @@ bool munmap(pagemap_t* pagemap, uint64_t addr, uint64_t length)
 {
     if (length == 0)
     {
-        // todo: set errno EINVAL
+        set_errno(EINVAL);
         return false;
     }
 
@@ -163,7 +167,7 @@ bool munmap(pagemap_t* pagemap, uint64_t addr, uint64_t length)
                     if(!virt2phys(pagemap, j, &phys)) continue;
                     if(!unmap_page(&global_range->shadow_pagemap, j))
                     {
-                        // todo: set errno EINVAL
+                        set_errno(EINVAL);
                         return false;
                     }
                     pmm_free((void*)phys, 1);

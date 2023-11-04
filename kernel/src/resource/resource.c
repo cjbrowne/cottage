@@ -1,5 +1,10 @@
+// first-party headers
 #include <resource/resource.h>
 #include <ioctl/ioctl.h>
+#include <errors/errno.h>
+
+// standard headers
+#include <errno.h>
 
 uint64_t dev_id_counter = 0;
 
@@ -18,11 +23,11 @@ int resource_default_ioctl(__attribute__((unused)) void* handle, __attribute__((
         case IOCTL_TCSETSF   :
         case IOCTL_TIOCSCTTY :
         case IOCTL_TIOCGWINSZ:
-        // todo: set errno ENOTTY
+        set_errno(ENOTTY);
         return -1;
         break;
         default:
-        // todo: set errno EINVAL
+        set_errno(EINVAL);
         return -1;
         break;
     }

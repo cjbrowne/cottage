@@ -1,3 +1,9 @@
+/*
+ * This file includes a basic TAR implementation, as the initramfs is stored as a TAR archive.
+ * It copies files from the initramfs.tar into tmpfs nodes at the same location they were in the tar.
+ * So for example if you have sbin/init in the tar file, this should appear as /sbin/init in the vfs tree.
+ * */
+
 // first-party headers
 #include <initramfs/initramfs.h>
 #include <klog/klog.h>
@@ -13,7 +19,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#define USTAR_HEADER_NAME_LEN 100
+#define USTAR_MAX_LONG_FILENAME_LEN 65536
 
 // checks max N chars in str and converts any octal digits found to
 // int.  All other characters are ignored.
@@ -46,7 +52,7 @@ void initramfs_init(struct limine_module_response* res)
 
     klog("init", "initramfs_begin=%x initramfs_size=%d", initramfs_begin, initramfs_size);
 
-    char name_override[USTAR_HEADER_NAME_LEN] = {0};
+    char name_override[USTAR_MAX_LONG_FILENAME_LEN] = {0};
 
     ustarheader_t* current_header = initramfs_begin;
 
@@ -58,21 +64,21 @@ void initramfs_init(struct limine_module_response* res)
             klog_debug("initramfs", "header signature doesn't match! signature=%s", current_header->signature);
             break;
         }
-        char name[USTAR_HEADER_NAME_LEN] = {0};
+        char name[USTAR_MAX_LONG_FILENAME_LEN] = {0};
         if(strlen(name_override) == 0)
         {
-            memcpy(name, current_header->name, USTAR_HEADER_NAME_LEN);
+            memcpy(name, current_header->name, USTAR_MAX_LONG_FILENAME_LEN);
         }
         else
         {
-            memcpy(name, name_override, USTAR_HEADER_NAME_LEN);
+            memcpy(name, name_override, USTAR_MAX_LONG_FILENAME_LEN);
         }
 
         char* link_name = current_header->link_name;
         uint64_t size = octal2int(current_header->size, 12);
         uint64_t mode = octal2int(current_header->mode, 8);
 
-        memset(name_override, 0, USTAR_HEADER_NAME_LEN);
+        memset(name_override, 0, USTAR_MAX_LONG_FILENAME_LEN);
 
         if (strncmp(name, "./", strlen(name)) == 0)
         {
@@ -132,9 +138,9 @@ void initramfs_init(struct limine_module_response* res)
             {
             	// don't allow ridiculously long file names because wtf, why would
                 // you want a 64K file name... you're a weirdo.  Stop it.  Get some help.
-                if (size >= 65536)
+                if (size > USTAR_MAX_LONG_FILENAME_LEN)
                 {
-                    panic("initramfs: long file name exceeds 65535 characters");
+                    panic("initramfs: long file name exceeds %d characters", USTAR_MAX_LONG_FILENAME_LEN);
                 }
                 memcpy(name_override, current_header+512, size);
             }

@@ -7,12 +7,14 @@
 #include <file/file.h>
 #include <debug/debug.h>
 #include <klog/klog.h>
+#include <errors/errno.h>
 
 // standard headers
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <errno.h>
 
 #define SHEBANG_MAX_INT_LEN 256
 #define SHEBANG_MAX_ARG_LEN 256
@@ -68,7 +70,7 @@ process_t* userland_start_program(
 
 		if(recursion_depth+1 > MAX_RECURSION)
         {
-            // todo: set errno = ELOOP
+            set_errno(ELOOP);
             return NULL;
         }
         // we've taken a copy of this, so we can safely free the original
@@ -93,7 +95,6 @@ process_t* userland_start_program(
         bool success = elf_load(pagemap, prog, 0, &elf_info);
         if(!success)
         {
-            // errno should already be set at this point, with the relevant error
             return NULL;
         }
         void* entry_point = NULL;
@@ -106,7 +107,6 @@ process_t* userland_start_program(
             vfs_node_t* ld_node = fs_get_node(vfs_root, elf_info.ld_path, true);
             if(ld_node == NULL)
             {
-                // errno should be set at this point with the relevant error
                 return NULL;
             }
             elf_info_t ld_info;

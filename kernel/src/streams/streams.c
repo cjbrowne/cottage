@@ -18,12 +18,14 @@
 #include <panic.h>
 #include <mem/pmm.h>
 #include <fs/devtmpfs.h>
+#include <errors/errno.h>
 
 // standard headers
 #include <stdint.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <string.h>
+#include <errno.h>
 
 bool devnull_grow(resource_t* self, void* handle, uint64_t size);
 int64_t devnull_read(resource_t* self, void* handle, void* buf, uint64_t loc, uint64_t count);
@@ -213,7 +215,7 @@ int64_t devfull_read(resource_t* self, void* handle, void* buf, uint64_t loc, ui
 
 int64_t devfull_write(resource_t* self, void* handle, void* buf, uint64_t loc, uint64_t count)
 {
-    // todo: set errno ENOSPC
+    set_errno(ENOSPC);
     return -1;
 }
 

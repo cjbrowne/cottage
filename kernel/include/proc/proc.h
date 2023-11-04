@@ -49,8 +49,8 @@ typedef struct {
 typedef struct thread_s {
     _Atomic uint64_t cpuid; // which cpu is the thread running on?
     thread_t* self;
-    // POSIX errno
-    uint64_t errno;
+    // POSIX errno (call it errnum because errno is a macro that confuses clang)
+    uint64_t errnum;
     uint64_t kernel_stack;
     uint64_t user_stack;
     // used for implementing syscalls as interrupts

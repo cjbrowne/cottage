@@ -27,6 +27,7 @@
 #include <streams/streams.h>
 #include <random/random.h>
 #include <userland/userland.h>
+#include <stdio.h>
 
 // hardware-specific stuff 
 // todo: move this shit behind HAL and/or into modules
@@ -315,6 +316,7 @@ void kmain_thread(void* arg)
     );
     if(init_process == NULL)
     {
+        perror("Could not load /sbin/init");
         panic("Could not start /sbin/init");
     }
 

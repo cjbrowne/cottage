@@ -4,6 +4,8 @@
 #include <lock/lock.h>
 #include <klog/klog.h>
 #include <debug/debug.h>
+#include <errors/errno.h>
+#include <errno.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -123,7 +125,7 @@ void path2node(vfs_node_t* parent, const char* path, vfs_node_t** parent_out, vf
 {
     if(strlen(path) == 0)
     {
-        // todo: set errno(ENOENT)
+        set_errno(ENOENT);
         *parent_out = NULL;
         *node_out = NULL;
         *basename_out = NULL;
@@ -183,7 +185,7 @@ void path2node(vfs_node_t* parent, const char* path, vfs_node_t** parent_out, vf
         vfs_node_t* new_node = node_get_child(current_node, path_elem);
         if(new_node == NULL)
         {
-            // todo: set errno ENOENT
+            set_errno(ENOENT);
             if(last)
             {
                 *parent_out = current_node;
@@ -228,7 +230,7 @@ void path2node(vfs_node_t* parent, const char* path, vfs_node_t** parent_out, vf
 
         if(!stat_is_dir(current_node->resource->stat.mode))
         {
-            // todo: set errno ENOTDIR
+            set_errno(ENOTDIR);
             *parent_out = NULL;
             *node_out = NULL;
             *basename_out = NULL;
@@ -238,7 +240,7 @@ void path2node(vfs_node_t* parent, const char* path, vfs_node_t** parent_out, vf
         free(path_elem);
     }
 
-    // todo: set errno ENOENT
+    set_errno(ENOENT);
     *parent_out = NULL;
     *node_out = NULL;
     *basename_out = NULL;
@@ -254,7 +256,7 @@ vfs_node_t* fs_symlink(vfs_node_t* parent, const char* dest, const char* target)
 
     if (target_node != NULL || parent_of_tgt != NULL)
     {
-        // todo: set errno EEXIST
+        set_errno(EEXIST);
         // if we allocated a basename in the path2node function, we will need to free it here
         free(basename);
         return NULL;
@@ -335,14 +337,14 @@ vfs_node_t* internal_create(vfs_node_t* parent, const char* name, int mode)
 
     if(target_node != NULL)
     {
-        // todo: set errno EEXIST
+        set_errno(EEXIST);
         free(basename);
         return NULL;
     }
 
     if(parent_of_tgt_node == NULL)
     {
-        // todo: set errno ENOENT
+        set_errno(ENOENT);
         free(basename);
         return NULL;
     }
