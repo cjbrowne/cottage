@@ -77,10 +77,11 @@ vfs_node_t* reduce_node(vfs_node_t* node, bool follow_symlinks)
     }
     if (follow_symlinks && node->symlink_target != NULL && strlen(node->symlink_target) != 0)
     {
-        path2node_return_t ret = path2node(node->parent, node->symlink_target);
-        vfs_node_t* next_node = ret.current;
+        vfs_node_t* parent_node, *next_node;
+        char* basename;
+        path2node(node->parent, node->symlink_target, &parent_node, &next_node, &basename);
         // we don't use the basename
-        free(ret.basename);
+        free(basename);
         if (next_node == NULL)
         {
             return NULL;
@@ -117,16 +118,16 @@ vfs_node_t* node_get_child(vfs_node_t* node, const char* child_name)
     return NULL;
 }
 
-path2node_return_t path2node(vfs_node_t* parent, const char* path)
+// todo: support passing in NULL as the last three parameters if we aren't interested in the return value
+void path2node(vfs_node_t* parent, const char* path, vfs_node_t** parent_out, vfs_node_t** node_out, char** basename_out)
 {
     if(strlen(path) == 0)
     {
         // todo: set errno(ENOENT)
-        return (path2node_return_t){
-            NULL,
-            NULL,
-            NULL 
-        };
+        *parent_out = NULL;
+        *node_out = NULL;
+        *basename_out = NULL;
+        return;
     }
 
     uint64_t index = 0;
@@ -141,7 +142,10 @@ path2node_return_t path2node(vfs_node_t* parent, const char* path)
             if(index == strlen(path) - 1)
             {
                 // if we only have `/` characters, we're essentially at the root
-                return (path2node_return_t){current_node, current_node, NULL};
+                *parent_out = current_node;
+                *node_out = current_node;
+                *basename_out = NULL;
+                return;
             }
             index++;
         }
@@ -182,27 +186,41 @@ path2node_return_t path2node(vfs_node_t* parent, const char* path)
             // todo: set errno ENOENT
             if(last)
             {
-                return (path2node_return_t){current_node, NULL, path_elem};
+                *parent_out = current_node;
+                *node_out = NULL;
+                *basename_out = path_elem;
+                return;
             }
-            return (path2node_return_t){NULL, NULL, NULL};
+            *parent_out = NULL;
+            *node_out = NULL;
+            *basename_out = NULL;
+            return;
         }
 
         new_node = reduce_node(new_node, false);
 
         if(last)
         {
-            return (path2node_return_t){current_node, new_node, path_elem};
+            *parent_out = current_node;
+            *node_out = new_node;
+            *basename_out = path_elem;
+            return;
         }
 
         current_node = new_node;
 
         if(stat_is_lnk(current_node->resource->stat.mode))
         {
-            path2node_return_t node = path2node(current_node->parent, current_node->symlink_target);
-            if(node.current == NULL)
+            vfs_node_t* parent, *current;
+            char* basename;
+            path2node(current_node->parent, current_node->symlink_target, &parent, &current, &basename);
+            if(current == NULL)
             {
                 free(path_elem);
-                return (path2node_return_t){NULL, NULL, NULL};
+                *parent_out = NULL;
+                *node_out = NULL;
+                *basename_out = NULL;
+                return;
             }
             free(path_elem);
             continue;
@@ -211,28 +229,34 @@ path2node_return_t path2node(vfs_node_t* parent, const char* path)
         if(!stat_is_dir(current_node->resource->stat.mode))
         {
             // todo: set errno ENOTDIR
-            return (path2node_return_t){NULL, NULL, NULL};
+            *parent_out = NULL;
+            *node_out = NULL;
+            *basename_out = NULL;
+            return;
         }
 
         free(path_elem);
     }
 
     // todo: set errno ENOENT
-    return (path2node_return_t){NULL, NULL, NULL};
+    *parent_out = NULL;
+    *node_out = NULL;
+    *basename_out = NULL;
+    return;
 }
 
 vfs_node_t* fs_symlink(vfs_node_t* parent, const char* dest, const char* target)
 {
-    path2node_return_t ret = path2node(parent, target);
-    vfs_node_t* parent_of_tgt = ret.parent;
-    vfs_node_t* target_node = ret.current;
-    char* basename = ret.basename;
+    vfs_node_t *parent_of_tgt;
+    vfs_node_t *target_node;
+    char* basename;
+    path2node(parent, target, &parent_of_tgt, &target_node, &basename);
 
     if (target_node != NULL || parent_of_tgt != NULL)
     {
         // todo: set errno EEXIST
         // if we allocated a basename in the path2node function, we will need to free it here
-        if(basename != NULL) free(basename);
+        free(basename);
         return NULL;
     }
 
@@ -255,9 +279,10 @@ bool fs_mount(vfs_node_t* parent, const char* source, const char* target, hpr_fs
     vfs_node_t* source_node = NULL;
     if (strlen(source) != 0)
     {
-        path2node_return_t ret = path2node(parent, source);
-        source_node = ret.current;
-        free(ret.basename);
+        vfs_node_t* __parent;
+        char* basename;
+        path2node(parent, source, &__parent, &source_node, &basename);
+        free(basename);
         if(source_node == NULL || stat_is_dir(source_node->resource->stat.mode))
         {
             klog("fs", "Mount failed: invalid source, or source is directory");
@@ -265,10 +290,10 @@ bool fs_mount(vfs_node_t* parent, const char* source, const char* target, hpr_fs
         }
     }
 
-    path2node_return_t ret = path2node(parent, target);
-    vfs_node_t* target_node = ret.current;
-    vfs_node_t* parent_of_tgt_node = ret.parent;
-    char* basename = ret.basename;
+    vfs_node_t* target_node;
+    vfs_node_t* parent_of_tgt_node;
+    char* basename;
+    path2node(parent, target, &parent_of_tgt_node, &target_node, &basename);
 
     bool mounting_root = target_node == vfs_root;
 
@@ -301,10 +326,10 @@ bool fs_mount(vfs_node_t* parent, const char* source, const char* target, hpr_fs
 
 vfs_node_t* internal_create(vfs_node_t* parent, const char* name, int mode)
 {
-    path2node_return_t ret = path2node(parent, name);
-    vfs_node_t* parent_of_tgt_node = ret.parent;
-    vfs_node_t* target_node = ret.current;
-    char* basename = ret.basename;
+    vfs_node_t* parent_of_tgt_node;
+    vfs_node_t* target_node;
+    char* basename;
+    path2node(parent, name, &parent_of_tgt_node, &target_node, &basename);
 
     klog_debug("fs", "fs_create parent->name=%s name=%s mode=%o", parent->name, name, mode);
 
@@ -355,13 +380,15 @@ void dir_create_dotentries(vfs_node_t* node, vfs_node_t* parent)
 vfs_node_t* fs_get_node(vfs_node_t* parent, const char* path, bool follow_symlinks)
 {
     klog_debug("fs", "calling path2node with args: parent=%x path=%s, parent->name=%s", parent, path, parent->name);
-    path2node_return_t ret = path2node(parent, path);
-    klog_debug("fs", "path2node returned ret.current=%x ret.parent=%x ret.basename=%s", ret.current, ret.parent, ret.basename);
-    free(ret.basename); // not used
-    if(ret.current == NULL) return NULL;
+    vfs_node_t* current, *next_parent;
+    char* basename;
+    path2node(parent, path, &next_parent, &current, &basename);
+    klog_debug("fs", "path2node returned current=%x parent=%x basename=%s", current, parent, basename);
+    free(basename); // not used
+    if(current == NULL) return NULL;
     if (follow_symlinks)
     {
-        return reduce_node(ret.current, true);
+        return reduce_node(current, true);
     }
-    return ret.current;
+    return current;
 }

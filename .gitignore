@@ -9,3 +9,7 @@
 .fleet
 .vscode
 .cache
+
+# Frozen files (they are meant to exist in git, but we don't want them to change)
+.gdbinit
+

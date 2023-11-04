@@ -106,7 +106,7 @@ void cpu_init(struct limine_smp_info* smp_info)
     // entry address
     wrmsr(0xc0000082, (uint64_t)((void*)syscall_entry));
 
-    // flags mask
+    // ported from VINIX - this sets up the IA32_ENERGY_PERF_BIAS register, putting it in performance mode (unsetting energy-efficient mode).
     wrmsr(0x00000084, (uint64_t)~((uint32_t)0x002));
 
     // enable PAT (write-combining/write-protect)

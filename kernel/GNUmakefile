@@ -65,6 +65,8 @@ override CFLAGS += \
     -mno-red-zone \
     -g 
 
+# uncomment the -g above to output debugging information
+
 ifdef COTTAGE_DEBUG
     override CFLAGS += -DCOTTAGE_DEBUG
 endif

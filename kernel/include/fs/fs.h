@@ -43,17 +43,11 @@ typedef struct vfs_node_s {
     const char* symlink_target;
 } vfs_node_t;
 
-typedef struct {
-    vfs_node_t* parent;
-    vfs_node_t* current;
-    char* basename;
-} path2node_return_t;
-
 void fs_init();
 vfs_node_t* vfs_create_node(filesystem_t* filesystem, vfs_node_t* parent, const char* name, bool dir);
 void vfs_add_child(vfs_node_t* parent, vfs_node_t* new_child);
 void dir_create_dotentries(vfs_node_t* node, vfs_node_t* parent);
-path2node_return_t path2node(vfs_node_t* parent, const char* path);
+void path2node(vfs_node_t* parent, const char* path, vfs_node_t** parent_out, vfs_node_t** node_out, char** basename_out);
 vfs_node_t* node_get_child(vfs_node_t* node, const char* child_name);
 
 bool fs_mount(vfs_node_t* parent, const char* source, const char* target, hpr_fsid_t fs_identifier);
