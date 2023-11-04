@@ -64,7 +64,7 @@
 typedef struct {
     uint8_t ident[8]; //bytes 0-7 define the type of ELF file
     RESERVE_BYTES(8); // bytes 8-15 are reserved
-    uint8_t type;     // see ELF_TYPE macros
+    uint16_t type;     // see ELF_TYPE macros
     uint16_t machine; // see ELF_MACHINE macros
     uint32_t version;
     uint64_t ptr_entry;         // the program entry point (vaddr)
