@@ -1,0 +1,7 @@
+
+
+void libc_init()
+{
+
+}
+

@@ -67,6 +67,10 @@ override CFLAGS += \
 
 # uncomment the -g above to output debugging information
 
+# this line should be uncommented, but we need to do some work to extract C dependencies from the kernel first.
+# for now, using linux headers works fine
+# override CFLAGS += --target=i686-pc-none-elf \
+
 ifdef COTTAGE_DEBUG
     override CFLAGS += -DCOTTAGE_DEBUG
 endif
