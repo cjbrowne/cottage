@@ -18,11 +18,11 @@ endef
 # It is suggested to use a custom built cross toolchain to build a kernel.
 # We are using the standard "cc" here, it may work by using
 # the host system's toolchain, but this is not guaranteed.
-override DEFAULT_CC := cc
+override DEFAULT_CC := clang
 $(eval $(call DEFAULT_VAR,CC,$(DEFAULT_CC)))
 
 # Use cc as the linker so that it can correctly call its own linker
-override DEFAULT_LD := cc
+override DEFAULT_LD := clang
 $(eval $(call DEFAULT_VAR,LD,$(DEFAULT_LD)))
 
 # User controllable C flags.
@@ -48,8 +48,12 @@ $(eval $(call DEFAULT_VAR,LDFLAGS,$(DEFAULT_LDFLAGS)))
 override CFLAGS += \
     -Wall \
     -Wextra \
-    -std=gnu11 \
-    -march=x86-64
+		-nostdlib \
+		-nostartfiles \
+		-nodefaultlibs \
+		-static \
+    -std=c11 \
+    #-march=x86-64
 
 # Internal C preprocessor flags that should not be changed by the user.
 override CPPFLAGS := \
@@ -57,7 +61,11 @@ override CPPFLAGS := \
 
 # Internal linker flags that should not be changed by the user.
 override LDFLAGS += \
-    -Wl,"-melf_x86_64"
+    -Wl,"-melf_x86_64" \
+		-nostdlib \
+		-nodefaultlibs \
+		-static \
+		-e main \
 
 # Internal nasm flags that should not be changed by the user.
 override NASMFLAGS += \
