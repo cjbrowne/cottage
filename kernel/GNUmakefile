@@ -72,7 +72,7 @@ override CFLAGS += \
 # override CFLAGS += --target=i686-pc-none-elf \
 
 ifdef COTTAGE_DEBUG
-    override CFLAGS += -DCOTTAGE_DEBUG
+    override CFLAGS += -DCOTTAGE_DEBUG -DCOTTAGE_DBG_INCLUDE_ABORT_STACK
 endif
 
 # Internal C preprocessor flags that should not be changed by the user.
